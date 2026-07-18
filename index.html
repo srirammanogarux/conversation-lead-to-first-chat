@@ -1,0 +1,1979 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stimuler — Onboarding flow prototype</title>
+
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  /* ---- BRAND (shared with café prototype) ---- */
+  --bg-screen: #000000;
+  --bubble-bot: #2a2a30;
+  --bubble-user: #6a4ff0;
+  --txt: #ffffff;
+  --txt-dim: #9aa0a6;
+  --txt-mid: #c4c5cc;
+
+  --purple-1: #7c5cff;
+  --purple-2: #5b3fed;
+  --purple-soft: rgba(124, 92, 255, 0.18);
+
+  --gold-1: #fbbf24;
+  --gold-2: #fde047;
+  --gold-glow: rgba(251, 191, 36, 0.45);
+
+  --green-2: #34d399;
+
+  /* ---- TIMING ---- */
+  --t-bubble-in: 360ms;
+  --t-sheet-in: 460ms;
+
+  /* ---- LAYOUT ---- */
+  --phone-w: 390px;
+  --phone-h: 800px;
+  --speed: 1;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: #000000;
+  min-height: 100vh;
+  font-family: 'InterDisplay', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
+  color: #1a1c2a;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+body {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 28px; padding: 48px 16px 80px;
+}
+.deva { font-family: 'Noto Sans Devanagari', 'InterDisplay', sans-serif; }
+
+/* ─── Phone frame ─── */
+.phone-wrap { position: relative; padding: 14px; }
+.phone {
+  width: var(--phone-w); height: var(--phone-h);
+  background: #050508; border-radius: 50px; position: relative;
+  box-shadow:
+    0 50px 120px -30px rgba(20,20,40,0.30),
+    0 20px 50px -10px rgba(20,20,40,0.18),
+    0 0 0 2px #1a1a22, 0 0 0 11px #0a0a10,
+    0 0 0 13px #2c2c34, 0 0 0 14px rgba(255,255,255,0.04);
+}
+.phone-side { position: absolute; width: 4px; background: #1a1a22; border-radius: 2px; z-index: 1; }
+.phone-side.power    { right: -16px; top: 220px; height: 92px; }
+.phone-side.vol-up   { left: -16px; top: 180px; height: 56px; }
+.phone-side.vol-down { left: -16px; top: 252px; height: 56px; }
+.phone-side.silent   { left: -16px; top: 132px; height: 32px; background: #14141c; }
+
+.screen {
+  position: absolute; inset: 0; overflow: hidden;
+  border-radius: 42px; background: var(--bg-screen);
+  display: flex; flex-direction: column; isolation: isolate;
+}
+.notch {
+  position: absolute; top: 9px; left: 50%; transform: translateX(-50%);
+  width: 112px; height: 30px; background: #000; border-radius: 18px; z-index: 50;
+}
+
+/* ─── Status bar ─── */
+.status-bar {
+  height: 48px; padding: 18px 28px 0;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+  font-feature-settings: 'tnum';
+}
+.status-bar .right { display: flex; gap: 5px; align-items: center; }
+
+/* ─── Header ─── */
+.header { padding: 4px 18px 14px; position: relative; flex-shrink: 0; z-index: 4; }
+.mode-label {
+  display: block; font-size: 15px; font-weight: 600; color: var(--purple-1);
+  padding: 6px 0 10px; letter-spacing: -0.01em;
+}
+.header-row {
+  display: grid; grid-template-columns: 32px 1fr auto; gap: 14px; align-items: center;
+}
+.back-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.back-btn svg { width: 24px; height: 24px; }
+
+.progress-bar {
+  height: 14px;
+  background: linear-gradient(180deg, #0e0a1a 0%, #1d1830 100%);
+  border-radius: 999px; overflow: hidden; position: relative;
+  box-shadow: inset 0 2px 3px rgba(0,0,0,0.78), inset 0 -1px 0 rgba(255,255,255,0.05), 0 1px 0 rgba(255,255,255,0.04);
+}
+.progress-fill {
+  position: absolute; inset: 0 auto 0 0; height: 100%; width: 8%;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0) 55%),
+    linear-gradient(90deg, #5b3fed 0%, #7c5cff 70%, #9c83ff 100%);
+  box-shadow: 0 0 14px rgba(124,92,255,0.6), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.18);
+  transition: width 720ms cubic-bezier(.45,.05,.55,.95);
+}
+
+.stars-tray { display: flex; gap: 5px; align-items: center; }
+.star-slot { width: 26px; height: 26px; position: relative; }
+.star-slot svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.star-slot svg.star-empty path { stroke: rgba(255,255,255,0.22); stroke-width: 1.5; fill: rgba(255,255,255,0.03); stroke-linejoin: round; stroke-linecap: round; }
+.star-slot svg.star-filled { opacity: 0; transform: scale(0.5); transform-origin: center; transition: opacity 260ms ease, transform 260ms ease; }
+.star-slot svg.star-filled path { fill: var(--gold-1); filter: drop-shadow(0 0 5px var(--gold-glow)); }
+.star-slot.filled svg.star-filled { opacity: 1; transform: scale(1); }
+.star-slot.pop svg.star-filled { animation: slotPunch 460ms cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.star-slot.twinkle svg.star-filled {
+  opacity: 1;
+  animation: starTwinkle 1500ms cubic-bezier(.34,1.4,.5,1) forwards;
+}
+@keyframes starTwinkle {
+  0%   { opacity: 0; transform: scale(0.4) rotate(-24deg); }
+  28%  { opacity: 1; transform: scale(1.28) rotate(10deg); filter: drop-shadow(0 0 9px var(--gold-glow)); }
+  55%  { opacity: 1; transform: scale(1.05) rotate(-4deg); }
+  100% { opacity: 0; transform: scale(0.85) rotate(0deg); }   /* dims back to inactive */
+}
+.star-slot.twinkle::after {
+  content: ''; position: absolute; inset: 1px; border-radius: 50%;
+  border: 2px solid var(--gold-2); pointer-events: none;
+  animation: ringPulse 700ms cubic-bezier(0.2,0.8,0.3,1) forwards;
+}
+.star-slot.pop::after {
+  content: ''; position: absolute; inset: 1px; border-radius: 50%;
+  border: 2px solid var(--gold-2); animation: ringPulse 560ms cubic-bezier(0.2,0.8,0.3,1) forwards; pointer-events: none;
+}
+@keyframes slotPunch { 0% { opacity: 0; transform: scale(0.5); } 45% { opacity: 1; transform: scale(1.24); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes ringPulse { 0% { opacity: 0.85; transform: scale(0.6); } 100% { opacity: 0; transform: scale(2.4); } }
+
+/* ─── Chat area ─── */
+.chat-wrap { flex: 1; position: relative; overflow: hidden; }
+.chat {
+  position: absolute; inset: 0; padding: 4px 18px 24px;
+  display: flex; flex-direction: column; gap: 18px;
+  overflow-y: auto; scroll-behavior: smooth; z-index: 2;
+  transition: filter 320ms ease;
+}
+.chat > *:first-child { margin-top: auto; }
+.chat::-webkit-scrollbar { display: none; }
+.chat.dimmed { filter: brightness(0.4) saturate(0.85); }
+.chat.with-dock { padding-bottom: 320px; }
+
+/* ─── Bubbles ─── */
+.bubble-row {
+  display: flex; position: relative; opacity: 0; transform: translateY(10px);
+  animation: bubbleIn var(--t-bubble-in) cubic-bezier(.25,.1,.25,1) forwards;
+}
+.bubble-row.bot { justify-content: flex-start; }
+.bubble-row.user { justify-content: flex-end; }
+@keyframes bubbleIn { to { opacity: 1; transform: translateY(0); } }
+
+.bubble {
+  max-width: 82%; padding: 14px 17px 12px;
+  font-size: 15.5px; line-height: 1.55; letter-spacing: -0.005em; font-weight: 500;
+}
+.bubble.bot { background: var(--bubble-bot); color: var(--txt); border-radius: 20px 20px 20px 4px; }
+.bubble.user { background: var(--bubble-user); color: var(--txt); border-radius: 20px 20px 4px 20px; box-shadow: 0 8px 22px -8px rgba(106,79,240,0.6); }
+
+/* inline translation reveal */
+.bubble .translation {
+  display: block; overflow: hidden; max-height: 0;
+  opacity: 0; margin-top: 0; padding-top: 0;
+  border-top: 1px dashed rgba(255,255,255,0);
+  transition: max-height 380ms cubic-bezier(.25,.1,.25,1), opacity 320ms ease, margin-top 380ms ease, padding-top 380ms ease, border-color 380ms ease;
+}
+.bubble .translation.show {
+  max-height: 120px; opacity: 1; margin-top: 11px; padding-top: 11px;
+  border-top-color: rgba(255,255,255,0.14);
+}
+.bubble .translation .t-txt { color: var(--txt-mid); font-size: 14.5px; line-height: 1.45; font-weight: 500; }
+
+/* tools row */
+.bubble-tools { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+.icon-btn {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  display: grid; place-items: center; cursor: pointer; padding: 0; flex-shrink: 0;
+  position: relative; transition: box-shadow 240ms ease, background-color 240ms ease;
+}
+.icon-btn svg { width: 15px; height: 15px; display: block; }
+.icon-btn.solid { background: #fff; border-color: #fff; }
+.icon-btn.solid svg { color: #111; }
+.bubble.user .icon-btn { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.25); }
+.bubble.user .icon-btn.solid svg { color: #fff; }
+
+/* white echoed choice bubble */
+.bubble.choice {
+  background: #fff; color: #0a0a14; font-weight: 600; font-size: 14.5px;
+  padding: 10px 16px; border-radius: 16px 4px 16px 16px;
+  box-shadow: 0 6px 18px -6px rgba(0,0,0,0.35);
+  display: inline-flex; align-items: center; gap: 7px; max-width: 82%;
+}
+.bubble.choice .emo { font-size: 15px; }
+
+/* loading dots (user side) */
+.bubble.loading {
+  background: var(--bubble-user); border-radius: 16px 16px 4px 16px;
+  padding: 16px 22px; display: flex; gap: 5px; align-items: center;
+}
+.bubble.loading span { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.85); animation: loadingDot 1100ms ease-in-out infinite; }
+.bubble.loading span:nth-child(2) { animation-delay: 150ms; }
+.bubble.loading span:nth-child(3) { animation-delay: 300ms; }
+@keyframes loadingDot { 0%,100% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
+
+/* bot typing indicator */
+.bubble.bot-typing { background: var(--bubble-bot); border-radius: 20px 20px 20px 4px; padding: 18px 22px; display: inline-flex; gap: 5px; align-items: center; }
+.bubble.bot-typing span { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.55); animation: loadingDot 1100ms ease-in-out infinite; }
+.bubble.bot-typing span:nth-child(2) { animation-delay: 150ms; }
+.bubble.bot-typing span:nth-child(3) { animation-delay: 300ms; }
+
+/* ─── Sarah avatar (behind first bot bubble) ─── */
+#sarah-host {
+  position: absolute; left: 6px; width: 120px; height: 120px; z-index: 1;
+  pointer-events: none; opacity: 0; transform: translateY(10px);
+  transition: opacity 460ms ease, transform 540ms cubic-bezier(.34,1.4,.64,1);
+}
+#sarah-host.show { opacity: 1; transform: translateY(0); }
+#sarah-host img, #sarah-host .fallback { width: 100%; height: 100%; display: block; object-fit: contain; }
+#sarah-host .fallback { border-radius: 50%; background: linear-gradient(160deg,#f7c39a,#c98966); display: grid; place-items: center; font-size: 44px; }
+
+/* ─── Sarah thinking (rises above + behind the Assembly Loader bubble) ─── */
+.sarah-think {
+  position: absolute; bottom: calc(100% + 4px); left: 4px;
+  width: 58px; height: 95px; z-index: 3; pointer-events: none;
+  opacity: 0; transform: translateY(18px) scale(0.8);
+  transition: opacity 640ms ease, transform 720ms cubic-bezier(.22,1,.36,1);
+}
+.sarah-think.show { opacity: 1; transform: translateY(0) scale(1); }
+.sarah-think.away { opacity: 0; transform: translateY(-14px) scale(0.9); transition: opacity 600ms ease, transform 640ms cubic-bezier(.4,0,.2,1); }
+.sarah-think img { width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; display: block; }
+
+/* ─── Mic area ─── */
+.mic-area { height: 128px; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+.mic-pill {
+  position: relative; height: 62px; width: 62px; border-radius: 999px;
+  background: radial-gradient(circle at 50% 32%, #b09cff 0%, #8b71ff 28%, #6a4ff0 65%, #4a2ee0 100%);
+  display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none;
+  opacity: 0; transform: scale(0.6); pointer-events: none;
+  box-shadow: 0 12px 32px rgba(124,92,255,0.45), inset 0 -3px 8px rgba(40,24,130,0.45), inset 0 2px 4px rgba(255,255,255,0.18);
+  transition: width 580ms cubic-bezier(0.34,1.32,0.36,1), background-color 420ms ease, border-color 420ms ease, opacity 380ms ease, transform 460ms cubic-bezier(0.34,1.4,0.4,1), box-shadow 420ms ease;
+}
+.mic-pill.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
+.mic-pill.idle::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: rgba(124,92,255,0.45); z-index: -1; animation: idlePulse 2400ms ease-out infinite;
+}
+@keyframes idlePulse { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(1.75); opacity: 0; } }
+.mic-pill.expanded {
+  width: 296px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 100%);
+  border: 1.6px solid rgba(124,92,255,0.55); box-shadow: 0 12px 36px rgba(124,92,255,0.22);
+}
+.pill-mic, .pill-cancel, .pill-confirm, .pill-waveform { position: absolute; transition: opacity 240ms ease, transform 320ms cubic-bezier(0.4,0,0.2,1); }
+.pill-mic { inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; }
+.mic-pill.expanded .pill-mic, .mic-pill.submitting .pill-mic { opacity: 0; }
+.pill-mic svg { width: 26px; height: 26px; }
+.pill-cancel { left: 7px; top: 50%; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #fff; display: flex; align-items: center; justify-content: center; transform: translateY(-50%) translateX(-14px) scale(0.6); opacity: 0; }
+.pill-cancel svg { width: 16px; height: 16px; }
+.mic-pill.expanded .pill-cancel { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); transition: opacity 320ms ease 160ms, transform 320ms cubic-bezier(0.4,1.5,0.4,1) 160ms; }
+.pill-confirm { right: 7px; top: 50%; width: 46px; height: 46px; border-radius: 50%; background: var(--bubble-user); color: #fff; display: flex; align-items: center; justify-content: center; transform: translateY(-50%) translateX(14px) scale(0.6); opacity: 0; box-shadow: 0 4px 14px rgba(124,92,255,0.4); }
+.pill-confirm svg { width: 20px; height: 20px; }
+.mic-pill.expanded .pill-confirm { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); transition: opacity 320ms ease 180ms, transform 320ms cubic-bezier(0.4,1.5,0.4,1) 180ms; }
+.pill-waveform { left: 58px; right: 56px; top: 50%; transform: translateY(-50%); height: 36px; display: flex; align-items: center; justify-content: center; gap: 3px; opacity: 0; }
+.mic-pill.expanded .pill-waveform { opacity: 1; transition: opacity 280ms ease 220ms; }
+.bar { width: 3px; height: 4px; border-radius: 2px; background: var(--purple-1); transition: height 90ms ease-out; }
+.mic-pill.submitting { width: 62px; background: var(--bubble-user); border: 1.6px solid transparent; }
+.mic-pill.submitting .pill-cancel, .mic-pill.submitting .pill-waveform { opacity: 0; }
+.mic-pill.submitting .pill-confirm { left: 50%; transform: translate(-50%,-50%) scale(1); box-shadow: none; }
+.mic-pill.tick-only .pill-confirm { opacity: 0; transition: opacity 220ms ease; }
+.mic-pill.gone { opacity: 0; transform: scale(0.86); pointer-events: none; }
+
+/* hint — embedded as right-side chat bubbles */
+.bubble.hint-chip {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+  color: var(--txt-mid); border-radius: 16px 16px 4px 16px;
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 14px; font-weight: 600; padding: 11px 15px; cursor: pointer;
+}
+.bubble.hint-chip svg { width: 15px; height: 15px; color: var(--gold-1); }
+.bubble.hint-chip .hint-label { transition: opacity 180ms ease; display: inline-block; }
+.bubble.hint-suggest {
+  background: rgba(20,16,42,0.92); border: 1.5px dashed rgba(124,92,255,0.55);
+  border-radius: 22px 22px 6px 22px; padding: 20px 22px; max-width: 88%;
+  transition: opacity 320ms ease, transform 320ms ease;
+}
+.bubble.hint-suggest.fade { opacity: 0; transform: translateY(-6px); }
+.bubble.hint-suggest .lead { display: flex; align-items: center; gap: 8px; color: var(--gold-1); font-size: 13px; font-weight: 700; letter-spacing: 0.02em; margin-bottom: 14px; }
+.bubble.hint-suggest .lead svg { width: 16px; height: 16px; }
+.bubble.hint-suggest .example { color: #fff; font-size: 18px; font-weight: 600; line-height: 1.5; }
+.bubble.hint-suggest .example-tr { color: var(--txt-dim); font-size: 14.5px; margin-top: 10px; line-height: 1.45; }
+
+/* ─── Translation sheet (opens on translate tap) ─── */
+.tr-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 58;
+  background: linear-gradient(180deg, #322a58 0%, #241d42 100%);
+  border-top: 1px solid rgba(170,150,255,0.3);
+  border-radius: 30px 30px 0 0;
+  padding: 18px 28px 52px;
+  min-height: 46%;
+  transform: translateY(100%);
+  transition: transform 480ms cubic-bezier(.25,.1,.25,1);
+  box-shadow: 0 -14px 44px rgba(0,0,0,0.7);
+}
+.tr-sheet.show { transform: translateY(0); }
+.tr-sheet.out { transform: translateY(100%); transition: transform 320ms cubic-bezier(0.4,0,1,1); }
+.tr-sheet .handle { width: 110px; height: 5px; background: rgba(255,255,255,0.34); border-radius: 3px; margin: 0 auto 30px; }
+.tr-sheet .lang-head { display: flex; gap: 10px; align-items: center; font-weight: 700; font-size: 16.5px; }
+.tr-sheet .lang-head.en { color: #aec5ff; margin-bottom: 14px; }
+.tr-sheet .lang-head.native { color: #c6afff; margin: 26px 0 14px; padding-top: 26px; border-top: 1px solid rgba(255,255,255,0.12); }
+.tr-sheet .lang-head svg { width: 20px; height: 20px; flex-shrink: 0; }
+.tr-sheet .en-badge {
+  width: 22px; height: 22px; border: 1.7px solid currentColor; border-radius: 6px;
+  display: grid; place-items: center; font-size: 10px; font-weight: 800; flex-shrink: 0;
+}
+.tr-sheet .body-txt { color: #ece9f7; font-size: 17.5px; line-height: 1.6; font-weight: 500; }
+.tr-sheet .body-txt.native { color: #ffffff; }
+
+/* ─── Tooltip (bilingual coach-mark) ─── */
+.tooltip {
+  position: absolute; background: #fff; color: #0a0a14;
+  padding: 11px 18px; border-radius: 14px; z-index: 62;
+  box-shadow: 0 12px 36px -10px rgba(0,0,0,0.45);
+  opacity: 0; transform: translate(-50%, 10px);
+  transition: opacity 280ms ease, transform 280ms cubic-bezier(.34,1.4,.64,1);
+  pointer-events: none; white-space: nowrap; text-align: center;
+}
+.tooltip.show { opacity: 1; transform: translate(-50%, 0); }
+.tooltip .main { font-weight: 700; font-size: 15px; }
+.tooltip .sub { font-size: 12.5px; color: #6a6a76; margin-top: 2px; font-weight: 500; }
+.tooltip::after {
+  content: ''; position: absolute; bottom: -7px; left: var(--arrow-x, 50%);
+  transform: translateX(-50%) rotate(45deg); width: 14px; height: 14px; background: #fff;
+  box-shadow: 4px 4px 12px -3px rgba(0,0,0,0.18);
+}
+.tooltip.up::after { top: -7px; bottom: auto; box-shadow: -2px -2px 8px -3px rgba(0,0,0,0.12); }
+
+/* ─── Agenda tour: star circle + title/desc callout card (Mobbin style) ─── */
+.star-circle { position: absolute; z-index: 61; pointer-events: none; }
+.star-circle svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 7px rgba(253,224,71,0.7)); }
+.star-slot.hold svg.star-filled { opacity: 1; transform: scale(1); animation: starHiPop 480ms cubic-bezier(0.34,1.56,0.64,1); }
+.star-slot.hold svg.star-filled path { fill: var(--gold-2); }
+@keyframes starHiPop {
+  0%   { opacity: 0; transform: scale(0.5); }
+  55%  { opacity: 1; transform: scale(1.28); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.coach-card {
+  position: absolute; z-index: 62; width: 252px;
+  background: #ffffff; color: #0a0a14; border-radius: 18px; padding: 16px 18px 17px;
+  box-shadow: 0 18px 46px rgba(0,0,0,0.5);
+  text-align: center; transform: translate(-50%, 10px); opacity: 0;
+  transition: opacity 300ms ease, transform 300ms cubic-bezier(.34,1.4,.64,1);
+}
+.coach-card.show { opacity: 1; transform: translate(-50%, 0); }
+.coach-card.out { opacity: 0; transform: translate(-50%, 6px); transition: opacity 220ms ease, transform 220ms ease; }
+.coach-card .cc-title { font-weight: 800; font-size: 19px; margin-bottom: 7px; letter-spacing: -0.01em; }
+.coach-card .cc-desc { font-size: 14px; color: #55555f; line-height: 1.46; font-weight: 500; }
+.coach-card .cc-native { font-size: 13px; color: #8a8a94; line-height: 1.5; font-weight: 500; margin-top: 8px; padding-top: 8px; border-top: 1px solid #ececf0; }
+.coach-card::before {
+  content: ''; position: absolute; top: -7px; left: var(--arrow-x, 50%);
+  transform: translateX(-50%) rotate(45deg); width: 16px; height: 16px; background: #fff;
+  box-shadow: -2px -2px 8px -3px rgba(0,0,0,0.12);
+}
+
+/* ─── Coach-mark scrim + spotlight ─── */
+.coach-scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.66); opacity: 0; pointer-events: none; transition: opacity 320ms ease; z-index: 55; }
+.coach-scrim.show { opacity: 1; }
+.spotlit { z-index: 60 !important; }
+.spotlit.pop-target::after {
+  content: ''; position: absolute; inset: -6px; border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 0 22px 4px rgba(124,92,255,0.65);
+  animation: coachRing 1600ms ease-in-out infinite;
+}
+@keyframes coachRing { 0%,100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.12); opacity: 0.55; } }
+
+/* ─── Input dock (chip cloud / quick replies) ─── */
+.input-dock {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, rgba(10,8,20,0) 0%, #0a0812 16%, #07060c 100%);
+  padding: 26px 20px 30px; z-index: 20;
+  transform: translateY(110%); transition: transform var(--t-sheet-in) cubic-bezier(.25,.1,.25,1);
+  display: flex; flex-direction: column;
+}
+.input-dock.show { transform: translateY(0); }
+.input-dock.out { transform: translateY(110%); transition: transform 300ms cubic-bezier(0.4,0,1,1); }
+.dock-label { color: var(--txt-dim); font-size: 13px; font-weight: 600; text-align: center; margin-bottom: 16px; }
+
+.chip-wrap { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 9px; margin-bottom: 20px; }
+.input-dock.right-align .dock-label { text-align: right; }
+.input-dock.right-align .quick-wrap { flex-direction: column; align-items: flex-end; gap: 10px; }
+.topic-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 15px; border-radius: 12px;
+  background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.12);
+  color: var(--txt-mid); font-size: 13.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, transform 200ms cubic-bezier(.34,1.5,.64,1);
+  opacity: 0; transform: translateY(8px);
+  animation: chipRise 380ms cubic-bezier(.25,.1,.25,1) forwards;
+}
+@keyframes chipRise { to { opacity: 1; transform: translateY(0); } }
+.topic-chip .emo { font-size: 14px; }
+.topic-chip.selected { background: #fff; color: #0a0a14; border-color: #fff; font-weight: 700; opacity: 1; transform: translateY(0) scale(1.04); }
+.topic-chip.selected.punch { animation: chipPunch 360ms cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes chipPunch { 0% { transform: scale(0.9); } 55% { transform: scale(1.1); } 100% { transform: scale(1.04); } }
+
+/* quick replies (single-select) */
+.quick-wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 4px; }
+.quick-chip {
+  padding: 13px 24px; border-radius: 14px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14);
+  color: #fff; font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: background-color 200ms ease, transform 200ms ease, border-color 200ms ease;
+  opacity: 0; transform: translateY(8px); animation: chipRise 380ms cubic-bezier(.25,.1,.25,1) forwards;
+}
+.quick-chip.selected { background: #fff; color: #0a0a14; border-color: #fff; font-weight: 700; opacity: 1; }
+.quick-chip.punch { animation: chipPunch 380ms cubic-bezier(0.34,1.56,0.64,1); }
+.quick-chip.dimming { opacity: 0.25; }
+
+/* gated CTA */
+.dock-cta {
+  height: 54px; border-radius: 27px; border: 0; width: 100%;
+  font-family: inherit; font-size: 15.5px; font-weight: 800; letter-spacing: 0.02em;
+  cursor: pointer; transition: background-color 320ms ease, color 320ms ease, box-shadow 320ms ease, opacity 260ms ease;
+  background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.4);
+}
+.dock-cta.ready {
+  background: linear-gradient(180deg, #7c5cff 0%, #5b3fed 100%); color: #fff;
+  box-shadow: 0 10px 26px -8px rgba(124,92,255,0.7);
+}
+
+
+/* Turn Lab widgets */
+.burst-emoji {
+  position: absolute; font-size: 26px; z-index: 40; pointer-events: none;
+  animation: burstPop 950ms cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes burstPop {
+  0%   { opacity: 0; transform: translateY(6px) scale(0.4); }
+  30%  { opacity: 1; transform: translateY(-8px) scale(1.25); }
+  70%  { opacity: 1; transform: translateY(-12px) scale(1); }
+  100% { opacity: 0; transform: translateY(-20px) scale(0.9); }
+}
+.bubble.bot.gentle { background: #2c2531; }
+.cb-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.45);
+  border-radius: 999px; padding: 1px 10px; font-size: 13.5px; font-weight: 700; color: var(--gold-2);
+  animation: tagGlow 1800ms ease-in-out infinite;
+}
+@keyframes tagGlow { 0%,100% { box-shadow: 0 0 4px rgba(251,191,36,0.2); } 50% { box-shadow: 0 0 12px rgba(251,191,36,0.5); } }
+.badge-row { display: flex; justify-content: flex-start; opacity: 0; transform: translateY(10px); animation: bubbleIn 420ms cubic-bezier(.25,.1,.25,1) forwards; }
+.badge-card {
+  border: 1.5px dashed rgba(251,191,36,0.55); background: rgba(251,191,36,0.06);
+  border-radius: 14px; padding: 12px 18px; display: flex; gap: 10px; align-items: center;
+  color: var(--gold-1); font-weight: 700; font-size: 14px;
+}
+.frame-card {
+  background: rgba(124,92,255,0.08); border: 1.5px dashed rgba(124,92,255,0.5);
+  border-radius: 18px 18px 18px 4px; padding: 16px 18px;
+  color: #fff; font-size: 16.5px; font-weight: 600; line-height: 1.75; max-width: 85%;
+}
+.frame-card .blank { color: var(--gold-1); border-bottom: 2px dotted var(--gold-1); padding: 0 20px; white-space: nowrap; }
+
+/* ─── Collector & meta-thought interactions ─── */
+.fly-emoji { position: absolute; font-size: 22px; z-index: 72; pointer-events: none; transform: translate(-50%,-50%); }
+.bar-ripple {
+  position: absolute; z-index: 71; width: 26px; height: 26px; margin: -13px 0 0 -13px;
+  border-radius: 50%; border: 2px solid rgba(205,180,255,0.95);
+  pointer-events: none;
+  animation: barRipple 640ms cubic-bezier(0.2,0.7,0.3,1) forwards;
+}
+@keyframes barRipple { 0% { opacity: 0.95; transform: scale(0.4); } 100% { opacity: 0; transform: scale(2.8); } }
+.progress-fill.glowpulse { animation: barGlow 620ms ease-out; }
+@keyframes barGlow {
+  0%   { filter: brightness(1.7) saturate(1.2); box-shadow: 0 0 28px rgba(124,92,255,1), inset 0 1px 0 rgba(255,255,255,0.35); }
+  100% { filter: brightness(1); }
+}
+.screen.pulse { animation: scrPulse 280ms ease-out; }
+@keyframes scrPulse { 0% { filter: brightness(1); } 30% { filter: brightness(1.1); } 100% { filter: brightness(1); } }
+
+.bubble.bot.assembling {
+  position: relative; overflow: hidden;
+  background: #221d30; border: 1px solid rgba(124,92,255,0.4);
+}
+.bubble.bot.assembling::before {          /* internal gradient glow, slow rotate */
+  content: ''; position: absolute; inset: -55%;
+  background: conic-gradient(from 0deg,
+    rgba(124,92,255,0) 0%, rgba(124,92,255,0.55) 18%,
+    rgba(251,191,36,0.45) 34%, rgba(124,92,255,0) 55%, rgba(124,92,255,0) 100%);
+  filter: blur(16px); opacity: 0.7; z-index: 0; pointer-events: none;
+  animation: asmSpin 2800ms linear infinite;
+}
+@keyframes asmSpin { to { transform: rotate(360deg); } }
+.bubble.bot.assembling::after {           /* shimmer sweep */
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 36%, rgba(255,255,255,0.16) 50%, transparent 64%);
+  transform: translateX(-120%); z-index: 1; pointer-events: none;
+  animation: asmShimmer 1700ms ease-in-out infinite;
+}
+@keyframes asmShimmer { to { transform: translateX(120%); } }
+.bubble.bot.assembling .asm-inner { position: relative; z-index: 2; display: flex; align-items: center; gap: 10px; }
+.bubble.bot.assembling .asm-spin {
+  width: 15px; height: 15px; flex-shrink: 0; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.25); border-top-color: #cbb6ff;
+  animation: asmDot 700ms linear infinite;
+}
+@keyframes asmDot { to { transform: rotate(360deg); } }
+.bubble.bot .asm-text { transition: opacity 340ms ease; }
+.bubble.bot.assembling.resolving::before { animation-duration: 650ms; opacity: 1; filter: blur(9px); }
+.bubble.bot.assembling.resolving {
+  border-color: rgba(160,130,255,0.85);
+  box-shadow: 0 0 30px rgba(124,92,255,0.5), 0 0 60px rgba(251,191,36,0.2);
+}
+.bubble.bot.settle {
+  animation: asmSettle 520ms ease-out;
+}
+@keyframes asmSettle {
+  0% { box-shadow: 0 0 30px rgba(124,92,255,0.5); }
+  100% { box-shadow: 0 0 0 rgba(124,92,255,0); }
+}
+
+.thought-row {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,0.045); border: 1px dashed rgba(255,255,255,0.14);
+  border-radius: 14px; padding: 8px 14px;
+  color: #9a9aa6; font-size: 13px; font-style: italic; font-weight: 500;
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+.thought-row.fade { opacity: 0; transform: translateY(-4px); }
+
+/* ─── First-response star fly + achievement toast ─── */
+.fly-star {
+  position: absolute; width: 34px; height: 34px; z-index: 61; pointer-events: none;
+  transform: translate(-50%,-50%); filter: drop-shadow(0 0 10px var(--gold-glow));
+}
+.fly-star svg { width: 100%; height: 100%; display: block; }
+.star-trail {
+  position: absolute; width: 8px; height: 8px; z-index: 60; pointer-events: none;
+  margin: -4px 0 0 -4px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,225,130,0.95), rgba(251,191,36,0));
+}
+.toast {
+  position: absolute; top: 92px; left: 50%; z-index: 63;
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(180deg, rgba(74,52,8,0.96), rgba(48,33,4,0.96));
+  border: 1px solid rgba(255,200,60,0.42); border-radius: 14px;
+  padding: 12px 18px; color: #fff; font-weight: 600; font-size: 14px; white-space: nowrap;
+  box-shadow: 0 14px 36px rgba(0,0,0,0.5), 0 0 26px rgba(255,200,60,0.18);
+  backdrop-filter: blur(8px); opacity: 0; transform: translate(-50%,-140%);
+}
+.toast.show { animation: toastIn 460ms cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.toast.hide { animation: toastOut 300ms ease forwards; }
+@keyframes toastIn  { 0% { opacity: 0; transform: translate(-50%,-140%); } 100% { opacity: 1; transform: translate(-50%,0); } }
+@keyframes toastOut { 0% { opacity: 1; transform: translate(-50%,0); } 100% { opacity: 0; transform: translate(-50%,-80%); } }
+.toast .t-star { width: 20px; height: 20px; flex-shrink: 0; }
+.toast .t-star svg { width: 100%; height: 100%; filter: drop-shadow(0 0 5px var(--gold-glow)); }
+
+/* ─── Home indicator ─── */
+.home-indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 130px; height: 5px; background: #fff; border-radius: 4px; opacity: 0.85; z-index: 51; }
+
+/* ─── Tap ripple ─── */
+.tap-dot {
+  position: absolute; width: 56px; height: 56px; border-radius: 50%;
+  background: rgba(255,255,255,0.55); box-shadow: 0 0 0 2px rgba(255,255,255,0.45), 0 0 18px rgba(255,255,255,0.35);
+  pointer-events: none; z-index: 70; transform: translate(-50%,-50%) scale(0.45); opacity: 0; mix-blend-mode: screen;
+}
+.tap-dot.go { animation: tapRipple 620ms cubic-bezier(0.2,0.7,0.3,1) forwards; }
+@keyframes tapRipple { 0% { opacity: 0; transform: translate(-50%,-50%) scale(0.45); } 18% { opacity: 0.95; transform: translate(-50%,-50%) scale(1); } 100% { opacity: 0; transform: translate(-50%,-50%) scale(2.2); } }
+
+/* ─── Loop fade ─── */
+.loop-fade { position: absolute; inset: 0; background: #000; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 600ms ease; border-radius: 42px; }
+.loop-fade.show { opacity: 1; }
+
+/* ─── Debug controls ─── */
+.controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; max-width: 720px; }
+.btn { background: #0a0a14; color: #fff; border: 0; padding: 12px 22px; border-radius: 999px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.18); display: inline-flex; align-items: center; gap: 8px; }
+.btn:hover { background: #1a1a26; }
+.btn.alt { background: #fff; color: #0a0a14; border: 1px solid #e1e1e7; box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
+.btn.alt:hover { background: #f5f5f9; }
+.scene-jumps { display: flex; gap: 4px; background: #f0f0f5; border-radius: 999px; padding: 4px; }
+.scene-jumps button { width: 32px; height: 32px; border: 0; background: transparent; border-radius: 50%; font-family: inherit; font-size: 13px; font-weight: 700; color: #1a1c2a; cursor: pointer; }
+.scene-jumps button:hover { background: #fff; }
+.scene-jumps button.active { background: #0a0a14; color: #fff; }
+.speed-control { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #5a5a68; font-weight: 600; }
+.speed-control select { background: #fff; border: 1px solid #e1e1e7; border-radius: 8px; padding: 8px 10px; font-family: inherit; font-size: 13px; font-weight: 600; }
+.scene-readout { font-size: 12px; color: #6e6e7a; font-weight: 600; padding: 6px 12px; background: #f5f5f9; border-radius: 999px; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<div class="phone-wrap">
+  <div class="phone">
+    <span class="phone-side silent"></span>
+    <span class="phone-side vol-up"></span>
+    <span class="phone-side vol-down"></span>
+    <span class="phone-side power"></span>
+
+    <div class="screen" id="screen">
+      <div class="notch"></div>
+
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">
+          <svg width="18" height="11" viewBox="0 0 18 11"><rect x="0" y="8" width="3" height="3" rx="0.5" fill="white"/><rect x="5" y="5.5" width="3" height="5.5" rx="0.5" fill="white"/><rect x="10" y="3" width="3" height="8" rx="0.5" fill="white"/><rect x="15" y="0.5" width="3" height="10.5" rx="0.5" fill="white"/></svg>
+          <svg width="16" height="11" viewBox="0 0 16 11"><path d="M8 1.5C4.4 1.5 1.6 3 0.2 4.6L1.8 6c1-1.2 3.2-2.2 6.2-2.2s5.2 1 6.2 2.2L15.8 4.6C14.4 3 11.6 1.5 8 1.5zm0 3c-2.3 0-3.9 0.9-4.6 1.9l1.5 1.4c.5-.5 1.7-1 3.1-1s2.6.5 3.1 1L12.6 6.4c-.7-1-2.3-1.9-4.6-1.9zm0 3.2L9.5 9.2 8 10.7 6.5 9.2 8 7.7z" fill="white"/></svg>
+          <svg width="26" height="12" viewBox="0 0 26 12"><rect x="0.5" y="0.5" width="22" height="11" rx="2.8" stroke="white" stroke-opacity="0.45" fill="none"/><rect x="2" y="2" width="19" height="8" rx="1.4" fill="white"/><rect x="23.2" y="3.5" width="1.6" height="5" rx="0.5" fill="white" fill-opacity="0.6"/></svg>
+        </span>
+      </div>
+
+      <div class="header">
+        <span class="mode-label" id="modeLabel">Conversation mode</span>
+        <div class="header-row">
+          <div class="back-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="stars-tray" id="starsTray">
+            <div class="star-slot" data-slot="0">
+              <svg class="star-empty" viewBox="0 0 24 24"><path d="M12 2.5L14.5 9L21.5 9.2L16 13.6L18.3 20.5L12 16.5L5.7 20.5L8 13.6L2.5 9.2L9.5 9L12 2.5z"/></svg>
+              <svg class="star-filled" viewBox="0 0 24 24"><path d="M12 2.5L14.5 9L21.5 9.2L16 13.6L18.3 20.5L12 16.5L5.7 20.5L8 13.6L2.5 9.2L9.5 9L12 2.5z"/></svg>
+            </div>
+            <div class="star-slot" data-slot="1">
+              <svg class="star-empty" viewBox="0 0 24 24"><path d="M12 2.5L14.5 9L21.5 9.2L16 13.6L18.3 20.5L12 16.5L5.7 20.5L8 13.6L2.5 9.2L9.5 9L12 2.5z"/></svg>
+              <svg class="star-filled" viewBox="0 0 24 24"><path d="M12 2.5L14.5 9L21.5 9.2L16 13.6L18.3 20.5L12 16.5L5.7 20.5L8 13.6L2.5 9.2L9.5 9L12 2.5z"/></svg>
+            </div>
+            <div class="star-slot" data-slot="2">
+              <svg class="star-empty" viewBox="0 0 24 24"><path d="M12 2.5L14.5 9L21.5 9.2L16 13.6L18.3 20.5L12 16.5L5.7 20.5L8 13.6L2.5 9.2L9.5 9L12 2.5z"/></svg>
+              <svg class="star-filled" viewBox="0 0 24 24"><path d="M12 2.5L14.5 9L21.5 9.2L16 13.6L18.3 20.5L12 16.5L5.7 20.5L8 13.6L2.5 9.2L9.5 9L12 2.5z"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-wrap">
+        <div class="chat" id="chat"></div>
+        <div id="sarah-host">
+          <img id="sarah-img" src="sarah.png" alt="Sarah" onerror="this.style.display='none';document.getElementById('sarah-fb').style.display='grid';">
+          <div id="sarah-fb" class="fallback" style="display:none">🙋‍♀️</div>
+        </div>
+      </div>
+
+      <div class="mic-area">
+        <div class="mic-pill" id="micPill">
+          <div class="pill-mic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>
+          </div>
+          <div class="pill-cancel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></div>
+          <div class="pill-waveform" id="waveform"></div>
+          <div class="pill-confirm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg></div>
+        </div>
+      </div>
+
+      <div class="home-indicator"></div>
+
+      <div class="coach-scrim" id="coachScrim"></div>
+      <div class="input-dock" id="inputDock"></div>
+
+      <div class="loop-fade" id="loopFade"></div>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn" id="replay">↻ Replay</button>
+  <button class="btn alt" id="pauseBtn">⏸ Pause</button>
+  <div class="scene-jumps" id="sceneJumps">
+    <button data-scene="1" class="active">1</button>
+    <button data-scene="2">2</button>
+    <button data-scene="3">3</button>
+    <button data-scene="4">4</button>
+    <button data-scene="5">5</button>
+    <button data-scene="6">6</button>
+    <button data-scene="7">7</button>
+    <button data-scene="8">8</button>
+    <button data-scene="9">9</button>
+  </div>
+  <label class="speed-control">Speed
+    <select id="speedSelect"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
+  </label>
+  <span class="scene-readout" id="readout">Scene 1</span>
+</div>
+
+<script>
+/* ============================================================
+   STIMULER ONBOARDING FLOW — CHOREOGRAPHY
+   Standalone first-run "get to know you" conversation.
+   Four turn types: coach-mark · multi-select · single-select · free-speak+hint
+   ============================================================ */
+
+const ICON_TRANSLATE = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>`;
+const ICON_SPEAKER = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M14 8a4 4 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16.5 5.5a7 7 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+const ICON_BULB = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10c.7.8 1 1.5 1 2h6c0-.5.3-1.2 1-2a6 6 0 0 0-4-10z"/></svg>`;
+
+const screen = document.getElementById('screen');
+const chat = document.getElementById('chat');
+const sarahHost = document.getElementById('sarah-host');
+const progressFill = document.getElementById('progressFill');
+const starsTray = document.getElementById('starsTray');
+const STAR_PATH = 'M12 2.5L14.5 9L21.5 9.2L16 13.6L18.3 20.5L12 16.5L5.7 20.5L8 13.6L2.5 9.2L9.5 9L12 2.5z';
+const micPill = document.getElementById('micPill');
+const waveformEl = document.getElementById('waveform');
+const coachScrim = document.getElementById('coachScrim');
+const inputDock = document.getElementById('inputDock');
+const loopFade = document.getElementById('loopFade');
+const readout = document.getElementById('readout');
+const sceneJumps = document.getElementById('sceneJumps');
+
+let SPEED = 1, PAUSED = false, CURRENT_GEN = 0, CURRENT_SCENE = 1, STARS = 0;
+
+const wait = ms => new Promise(resolve => {
+  const tick = () => { if (PAUSED) return setTimeout(tick, 60); setTimeout(resolve, ms / SPEED); };
+  tick();
+});
+function aborted(g) { return g !== CURRENT_GEN; }
+
+/* ─── Tap ripple ─── */
+function tapAt(el, { lead = 220, offsetX = 0, offsetY = 0 } = {}) {
+  return new Promise(resolve => {
+    if (!el) { setTimeout(resolve, lead); return; }
+    const sr = screen.getBoundingClientRect();
+    const er = el.getBoundingClientRect();
+    const cx = er.left + er.width / 2 - sr.left + offsetX;
+    const cy = er.top + er.height / 2 - sr.top + offsetY;
+    const dot = document.createElement('div');
+    dot.className = 'tap-dot'; dot.style.left = cx + 'px'; dot.style.top = cy + 'px';
+    screen.appendChild(dot);
+    requestAnimationFrame(() => dot.classList.add('go'));
+    setTimeout(() => dot.remove(), 700);
+    setTimeout(resolve, lead / SPEED);
+  });
+}
+
+/* ─── Bubble helpers ─── */
+function buildTool(type) {
+  const div = document.createElement('div');
+  if (type === 'translate') { div.className = 'icon-btn translate'; div.innerHTML = ICON_TRANSLATE; }
+  else if (type === 'speaker') { div.className = 'icon-btn solid'; div.innerHTML = ICON_SPEAKER; }
+  return div;
+}
+function addBubble({ kind = 'bot', html, tools = [], id = '', translation = null }) {
+  const row = document.createElement('div');
+  row.className = `bubble-row ${kind === 'bot' ? 'bot' : 'user'}`;
+  if (id) row.id = id;
+  const bubble = document.createElement('div');
+  bubble.className = `bubble ${kind}`;
+  bubble.innerHTML = html;
+  if (translation) {
+    const tr = document.createElement('div');
+    tr.className = 'translation';
+    tr.innerHTML = `<div class="t-txt deva">${translation}</div>`;
+    bubble.appendChild(tr);
+  }
+  if (tools.length) {
+    const t = document.createElement('div');
+    t.className = 'bubble-tools';
+    tools.forEach(type => t.appendChild(buildTool(type)));
+    bubble.appendChild(t);
+  }
+  row.appendChild(bubble);
+  chat.appendChild(row);
+  scrollChat();
+  return { row, bubble };
+}
+async function addBotMessage({ html, tools = [], id = '', translation = null, loadingMs = 1000 }) {
+  const typingRow = document.createElement('div');
+  typingRow.className = 'bubble-row bot';
+  typingRow.innerHTML = `<div class="bubble bot-typing"><span></span><span></span><span></span></div>`;
+  chat.appendChild(typingRow);
+  scrollChat();
+  if (chat.querySelectorAll('.bubble-row.bot').length === 1) requestAnimationFrame(positionSarah);
+  await wait(loadingMs);
+  typingRow.remove();
+  return addBubble({ kind: 'bot', html, tools, id, translation });
+}
+
+/* reveal inline translation on a given bubble */
+async function revealTranslation(bubble) {
+  const tr = bubble.querySelector('.translation');
+  if (!tr) return;
+  tr.classList.add('show');
+  // Keep Sarah + the scroll glued to the bubble as it grows taller (she rides up).
+  const start = performance.now();
+  const track = () => {
+    positionSarah(); scrollChat();
+    if (performance.now() - start < 500) requestAnimationFrame(track);
+  };
+  requestAnimationFrame(track);
+  await wait(560);
+}
+
+/* ─── Sarah ─── */
+function showSarah() { positionSarah(); sarahHost.classList.add('show'); }
+function hideSarah() { sarahHost.classList.remove('show'); }
+function positionSarah() {
+  const firstBotRow = chat.querySelector('.bubble-row.bot');
+  if (!firstBotRow) return;
+  const bubble = firstBotRow.querySelector('.bubble');
+  const chatRect = chat.getBoundingClientRect();
+  const bubbleRect = bubble.getBoundingClientRect();
+  sarahHost.style.top = (bubbleRect.top - chatRect.top - 96) + 'px';
+}
+
+/* ─── Progress + stars ─── */
+function setProgress(pct) { progressFill.style.width = pct + '%'; }
+function setStars(n) {
+  STARS = n;
+  starsTray.querySelectorAll('.star-slot').forEach((s, i) => {
+    s.classList.toggle('filled', i < n);
+    s.classList.remove('pop');
+  });
+}
+async function earnStar() {
+  const idx = STARS;                       // fill the next inactive slot
+  STARS = Math.min(3, STARS + 1);
+  const slot = starsTray.querySelectorAll('.star-slot')[idx];
+  if (slot) {
+    slot.classList.add('filled', 'pop');
+    setTimeout(() => slot.classList.remove('pop'), 560);
+  }
+  await wait(240);
+}
+
+/* ─── Mic waveform ─── */
+const MIC_BAR_COUNT = 26;
+const micBars = [];
+for (let i = 0; i < MIC_BAR_COUNT; i++) {
+  const b = document.createElement('div'); b.className = 'bar';
+  waveformEl.appendChild(b);
+  micBars.push({ el: b, current: 4, phase: Math.random() * Math.PI * 2 });
+}
+let micWaveRAF = null;
+function startMicWave() {
+  let last = performance.now();
+  const tick = (now) => {
+    const dt = (now - last) / 1000; last = now;
+    micBars.forEach((bar, i) => {
+      const mid = (MIC_BAR_COUNT - 1) / 2;
+      const env = Math.exp(-Math.pow((i - mid) / (MIC_BAR_COUNT * 0.4), 2));
+      bar.phase += dt * (1.5 + Math.random() * 2.5);
+      const noise = (Math.sin(bar.phase) + Math.sin(bar.phase * 1.7) * 0.6) * 0.5 + 0.5;
+      const burst = Math.random() < 0.05 ? Math.random() * 0.6 : 0;
+      const target = 4 + noise * 28 * env + burst * 18 * env;
+      bar.current += (target - bar.current) * Math.min(1, dt * 18);
+      bar.el.style.height = bar.current.toFixed(1) + 'px';
+    });
+    micWaveRAF = requestAnimationFrame(tick);
+  };
+  micWaveRAF = requestAnimationFrame(tick);
+}
+function stopMicWave() {
+  if (micWaveRAF) cancelAnimationFrame(micWaveRAF);
+  micWaveRAF = null;
+  micBars.forEach(b => { b.current = 4; b.el.style.height = '4px'; });
+}
+
+/* ─── Coach-mark (dim + spotlight target + bilingual tooltip) ─── */
+function showTooltip({ main, sub, anchorEl, place }) {
+  const t = document.createElement('div');
+  t.className = 'tooltip coach-tip';
+  t.innerHTML = `<div class="main">${main}</div>${sub ? `<div class="sub deva">${sub}</div>` : ''}`;
+  screen.appendChild(t);
+  const sRect = screen.getBoundingClientRect();
+  const aRect = anchorEl.getBoundingClientRect();
+  const acx = aRect.left + aRect.width / 2 - sRect.left;
+  const acy = aRect.top + aRect.height / 2 - sRect.top;
+  // Auto-place: bottom-half anchors get a tooltip ABOVE them, top-half get one BELOW.
+  const above = place ? place === 'above' : (acy > sRect.height * 0.55);
+  t.classList.toggle('up', !above);            // arrow-up = tooltip sits below the target
+  const tw = t.offsetWidth, th = t.offsetHeight, m = 14;
+  let left = Math.max(tw / 2 + m, Math.min(sRect.width - tw / 2 - m, acx));
+  let top = above ? (aRect.top - sRect.top - th - 14) : (aRect.bottom - sRect.top + 14);
+  top = Math.max(m, Math.min(sRect.height - th - m, top));   // never clip top/bottom
+  t.style.left = left + 'px';
+  t.style.top = top + 'px';
+  // Keep the arrow pointing at the ACTUAL target even when the box is clamped
+  const arrowX = Math.max(14, Math.min(tw - 14, acx - left + tw / 2));
+  t.style.setProperty('--arrow-x', arrowX + 'px');
+  requestAnimationFrame(() => t.classList.add('show'));
+  return { el: t, hide() { t.classList.remove('show'); setTimeout(() => t.remove(), 300); } };
+}
+async function coachMark({ target, main, sub, place, dwell = 1600 }) {
+  coachScrim.classList.add('show');
+  const prevPos = target.style.position;
+  if (getComputedStyle(target).position === 'static') target.style.position = 'relative';
+  target.classList.add('spotlit', 'pop-target');
+  const tip = showTooltip({ main, sub, anchorEl: target, place });
+  await wait(dwell);
+  return {
+    async dismiss() {
+      tip.hide();
+      target.classList.remove('spotlit', 'pop-target');
+      target.style.position = prevPos;
+      coachScrim.classList.remove('show');
+      await wait(320);
+    }
+  };
+}
+
+/* ─── Input dock: multi-select chip cloud ─── */
+const TOPICS = [
+  ['🐾','Pets'], ['⚽','Football'], ['🏏','Cricket'], ['🎬','Movies & shows'],
+  ['🎮','Gaming'], ['💼','Career'], ['📖','Books'], ['🌱','Gardening'],
+  ['🏋','Fitness'], ['🏍','Cars & Bikes'], ['🛍','Shopping'], ['❤️','Love & relationships'],
+  ['🍜','Food & cooking'], ['🤖','AI & tech']
+];
+function openDock(innerHTML, extraClass = '') {
+  inputDock.className = 'input-dock' + (extraClass ? ' ' + extraClass : '');
+  inputDock.innerHTML = innerHTML;
+  void inputDock.offsetWidth;                // reflow so the slide-up transition plays
+  inputDock.classList.add('show');
+  chat.classList.add('with-dock');
+  scrollChat();
+}
+async function closeDock() {
+  inputDock.classList.remove('show');
+  inputDock.classList.add('out');
+  chat.classList.remove('with-dock');
+  await wait(300);
+  inputDock.className = 'input-dock';
+  inputDock.innerHTML = '';
+}
+
+/* Fade the dock's chrome + any chips we are NOT morphing out */
+function fadeDockExcept(keep) {
+  inputDock.querySelectorAll('.dock-label, .dock-cta, .topic-chip, .quick-chip').forEach(el => {
+    if (keep.includes(el)) return;
+    el.style.transition = 'opacity 260ms ease, transform 260ms cubic-bezier(.4,0,1,1)';
+    el.style.opacity = '0';
+    el.style.transform = 'scale(0.86)';
+  });
+}
+
+/* FLIP morph: a selected chip flies up out of the dock and lands as a chat bubble */
+function flipMorph(sourceEl, html) {
+  return new Promise(resolve => {
+    const sRect = screen.getBoundingClientRect();
+    const first = sourceEl.getBoundingClientRect();
+    const row = document.createElement('div');
+    row.className = 'bubble-row user';
+    row.style.animation = 'none'; row.style.opacity = '1'; row.style.transform = 'none';
+    const bub = document.createElement('div');
+    bub.className = 'bubble choice';
+    bub.innerHTML = html;
+    row.appendChild(bub);
+    chat.appendChild(row);
+    chat.scrollTop = chat.scrollHeight;      // sync scroll so the measurement is final
+    // Synchronous layout read → the bubble's landing position (no rAF dependency)
+    const last = bub.getBoundingClientRect();
+    bub.style.opacity = '0';
+    sourceEl.style.visibility = 'hidden';
+    const clone = document.createElement('div');
+    clone.className = 'bubble choice';
+    clone.innerHTML = html;
+    clone.style.position = 'absolute';
+    clone.style.margin = '0';
+    clone.style.zIndex = '80';
+    clone.style.left = (first.left - sRect.left) + 'px';
+    clone.style.top = (first.top - sRect.top) + 'px';
+    screen.appendChild(clone);
+    const dx = last.left - first.left, dy = last.top - first.top, dur = 460;
+    clone.animate(
+      [{ transform: 'translate(0,0) scale(1)', borderRadius: '14px' },
+       { transform: `translate(${dx * 0.55}px, ${dy * 0.6}px) scale(1.07)`, borderRadius: '16px 8px 16px 16px', offset: 0.55 },
+       { transform: `translate(${dx}px, ${dy}px) scale(1)`, borderRadius: '16px 4px 16px 16px' }],
+      { duration: dur / SPEED, easing: 'cubic-bezier(.25,.9,.3,1.08)', fill: 'forwards' }
+    );
+    setTimeout(() => { clone.remove(); bub.style.opacity = '1'; resolve(); }, (dur + 40) / SPEED);
+  });
+}
+
+/* Group morph: ALL selected chips travel to the right at once, each transforming
+   from a chip into a stacked chat bubble (corner radius morphs too). */
+function morphChipsTogether(items) {          // items: [{ chip, html }]
+  return new Promise(resolve => {
+    const sRect = screen.getBoundingClientRect();
+    const firsts = items.map(it => it.chip.getBoundingClientRect());
+    const dests = items.map(it => {
+      const row = document.createElement('div');
+      row.className = 'bubble-row user';
+      row.style.animation = 'none'; row.style.opacity = '1'; row.style.transform = 'none';
+      const bub = document.createElement('div');
+      bub.className = 'bubble choice';
+      bub.innerHTML = it.html;
+      row.appendChild(bub);
+      chat.appendChild(row);
+      return bub;
+    });
+    chat.scrollTop = chat.scrollHeight;
+    const lasts = dests.map(b => b.getBoundingClientRect());
+    dests.forEach(b => b.style.opacity = '0');
+    items.forEach(it => it.chip.style.visibility = 'hidden');
+    const dur = 620;
+    const clones = items.map((it, i) => {
+      const clone = document.createElement('div');
+      clone.className = 'bubble choice';
+      clone.innerHTML = it.html;
+      clone.style.position = 'absolute';
+      clone.style.margin = '0';
+      clone.style.zIndex = '80';
+      clone.style.left = (firsts[i].left - sRect.left) + 'px';
+      clone.style.top = (firsts[i].top - sRect.top) + 'px';
+      screen.appendChild(clone);
+      const dx = lasts[i].left - firsts[i].left, dy = lasts[i].top - firsts[i].top;
+      clone.animate(
+        [{ transform: 'translate(0,0) scale(1)', borderRadius: '12px' },
+         { transform: `translate(${dx * 0.55}px, ${dy * 0.6}px) scale(1.07)`, borderRadius: '16px 8px 16px 16px', offset: 0.55 },
+         { transform: `translate(${dx}px, ${dy}px) scale(1)`, borderRadius: '16px 4px 16px 16px' }],
+        { duration: dur / SPEED, delay: (i * 90) / SPEED, easing: 'cubic-bezier(.25,.9,.3,1.08)', fill: 'forwards' }
+      );
+      return clone;
+    });
+    setTimeout(() => {
+      clones.forEach(c => c.remove());
+      dests.forEach(b => b.style.opacity = '1');
+      resolve();
+    }, (dur + 90 * (items.length - 1) + 60) / SPEED);
+  });
+}
+
+/* ─── Hint scaffold (embedded as right-side chat bubbles) ─── */
+function addHintChip() {
+  const row = document.createElement('div');
+  row.className = 'bubble-row user';
+  row.innerHTML = `<div class="bubble hint-chip">${ICON_BULB}<span class="hint-label">Tap to see hint</span></div>`;
+  chat.appendChild(row); scrollChat();
+  // Alternate EN <-> localised so the learner understands what "hint" means
+  const label = row.querySelector('.hint-label');
+  const langs = ['Tap to see hint', 'संकेत देखें'];
+  let li = 0;
+  const iv = setInterval(() => {
+    if (!document.body.contains(row)) { clearInterval(iv); return; }
+    li = (li + 1) % langs.length;
+    label.style.opacity = '0';
+    setTimeout(() => {
+      label.textContent = langs[li];
+      label.classList.toggle('deva', li === 1);
+      label.style.opacity = '1';
+    }, 180);
+  }, 1500 / SPEED);
+  row._hintIv = iv;
+  return row;
+}
+function addHintSuggestion(example, translation) {
+  const row = document.createElement('div');
+  row.className = 'bubble-row user';
+  row.innerHTML = `<div class="bubble hint-suggest">
+      <div class="lead">${ICON_BULB}<span>You can say it like this</span></div>
+      <div class="example">${example}</div>
+      <div class="example-tr deva">${translation}</div>
+    </div>`;
+  chat.appendChild(row); scrollChat();
+  return row;
+}
+
+/* ─── Reset ─── */
+function resetAll() {
+  chat.innerHTML = '';
+  screen.querySelectorAll('.tooltip').forEach(t => t.remove());
+  screen.querySelectorAll('.tap-dot').forEach(t => t.remove());
+  coachScrim.classList.remove('show');
+  inputDock.className = 'input-dock'; inputDock.innerHTML = '';
+  chat.classList.remove('dimmed', 'with-dock');
+  micPill.className = 'mic-pill'; stopMicWave();
+  hideSarah();
+  screen.querySelectorAll('.toast, .fly-star, .star-trail, .coach-card, .star-circle').forEach(e => e.remove());
+  starsTray.querySelectorAll('.star-slot').forEach(s => s.classList.remove('pop'));
+  PROGRESS = 6; setProgress(PROGRESS);
+  setStars(0);
+  loopFade.classList.remove('show');
+}
+
+/* ============================================================
+   SCENES — 9-step guided onboarding → first impromptu answer
+   Ladder: tap → tap → tap → tap → tap → speak (hint: sentence)
+           → speak (hint: frame). Every input feeds the collector
+   bar (fly + glow + pop). Sarah splits long thoughts, shows her
+   thinking, and states the purpose of every ask.
+   ============================================================ */
+
+/* ─── Sound (WebAudio; silent until first user gesture unlocks it) ─── */
+let AC = null;
+function ac() {
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+  if (AC && AC.state === 'suspended') AC.resume();
+  return AC;
+}
+document.addEventListener('pointerdown', () => ac(), { once: true });
+function tone(freq, dur = 0.09, type = 'sine', gain = 0.055, delay = 0) {
+  const c = ac(); if (!c || c.state !== 'running') return;
+  const t = c.currentTime + delay;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(gain, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(t); o.stop(t + dur);
+}
+function sfxPop()     { tone(420, 0.07, 'triangle', 0.09); tone(660, 0.06, 'triangle', 0.05, 0.035); }
+function sfxCollect() { tone(523, 0.09, 'sine', 0.06); tone(784, 0.14, 'sine', 0.05, 0.07); }
+function sfxChime()   { [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.3, 'sine', 0.05, i * 0.1)); }
+
+/* ─── Collector bar: inputs physically feed progress ─── */
+let PROGRESS = 6;
+function barIntake(bump) {
+  PROGRESS = Math.min(100, PROGRESS + bump);
+  setProgress(PROGRESS);
+  progressFill.classList.remove('glowpulse'); void progressFill.offsetWidth;
+  progressFill.classList.add('glowpulse');
+  screen.classList.remove('pulse'); void screen.offsetWidth;   // haptic stand-in
+  screen.classList.add('pulse');
+  sfxCollect();
+}
+function intakePoint() {
+  const sr = screen.getBoundingClientRect();
+  const bar = document.querySelector('.progress-bar');
+  const br = bar.getBoundingClientRect();
+  const fillR = progressFill.getBoundingClientRect();
+  const x = Math.max(fillR.left - sr.left + 14, Math.min(fillR.right - sr.left + 10, br.right - sr.left - 16));
+  const y = br.top + br.height / 2 - sr.top;
+  return { x, y };
+}
+function spawnRipples(x, y) {
+  for (let i = 0; i < 2; i++) {
+    const r = document.createElement('div');
+    r.className = 'bar-ripple';
+    r.style.left = x + 'px'; r.style.top = y + 'px';
+    r.style.animationDelay = (i * 140) + 'ms';
+    screen.appendChild(r);
+    setTimeout(() => r.remove(), 900 + i * 140);
+  }
+}
+/* subtle version — small emoji arcs straight to the bar (used after speech) */
+function collectSubtle(emoji, fromEl, bump) {
+  const sr = screen.getBoundingClientRect();
+  const fr = fromEl.getBoundingClientRect();
+  const { x: x1, y: y1 } = intakePoint();
+  const x0 = fr.left + fr.width / 2 - sr.left, y0 = fr.top - sr.top + 6;
+  const el = document.createElement('div');
+  el.className = 'fly-emoji'; el.textContent = emoji;
+  el.style.left = x0 + 'px'; el.style.top = y0 + 'px';
+  screen.appendChild(el);
+  el.animate([
+    { transform: 'translate(-50%,-50%) scale(1)' },
+    { transform: `translate(calc(-50% + ${(x1 - x0) * 0.45}px), calc(-50% + ${(y1 - y0) * 0.5 - 70}px)) scale(1.2)`, offset: 0.5 },
+    { transform: `translate(calc(-50% + ${x1 - x0}px), calc(-50% + ${y1 - y0}px)) scale(0.35)`, opacity: 0.9, offset: 1 }
+  ], { duration: 640 / SPEED, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'forwards' });
+  setTimeout(() => { el.remove(); spawnRipples(x1, y1); barIntake(bump); }, 650 / SPEED);
+}
+/* ★ "CLAP & COLLECT" — named interaction (snapshot: interactions/clap-and-collect.md)
+   On tap the pick's emoji rises off the chip, scales up and DOES ITS THING
+   (the clap claps, the ball bounces), then shrinks and flies up into the
+   progress bar: ripple + glow + chime + screen pulse on intake. */
+async function collect(emoji, fromEl, bump) {
+  const sr = screen.getBoundingClientRect();
+  const fr = fromEl.getBoundingClientRect();
+  const x0 = fr.left + fr.width / 2 - sr.left;
+  const y0 = fr.top + fr.height / 2 - sr.top;
+  // stage spot: floats just above the tapped chip (clamped inside the screen)
+  const stageX = Math.max(70, Math.min(sr.width - 70, x0));
+  const stageY = Math.max(120, y0 - 86);
+
+  const el = document.createElement('div');
+  el.className = 'fly-emoji';
+  el.textContent = emoji;
+  el.style.left = x0 + 'px';
+  el.style.top = y0 + 'px';
+  el.style.fontSize = '22px';
+  screen.appendChild(el);
+
+  // 1) rise off the chip and swell
+  el.style.transition = `left ${340/SPEED}ms cubic-bezier(.2,.8,.3,1.15), top ${340/SPEED}ms cubic-bezier(.2,.8,.3,1.15), font-size ${340/SPEED}ms cubic-bezier(.2,.8,.3,1.15)`;
+  void el.offsetWidth;
+  el.style.left = stageX + 'px';
+  el.style.top = stageY + 'px';
+  el.style.fontSize = '76px';
+  await wait(360);
+
+  // 2) the performance — clap claps: squeeze-and-snap wiggle
+  sfxPop();
+  el.animate([
+    { transform: 'translate(-50%,-50%) rotate(0deg) scale(1)' },
+    { transform: 'translate(-50%,-50%) rotate(-16deg) scale(1.18, 0.92)', offset: 0.18 },
+    { transform: 'translate(-50%,-50%) rotate(10deg) scale(0.94, 1.1)', offset: 0.38 },
+    { transform: 'translate(-50%,-50%) rotate(-10deg) scale(1.12, 0.95)', offset: 0.58 },
+    { transform: 'translate(-50%,-50%) rotate(5deg) scale(0.98, 1.04)', offset: 0.78 },
+    { transform: 'translate(-50%,-50%) rotate(0deg) scale(1)' }
+  ], { duration: 560 / SPEED, easing: 'ease-in-out' });
+  await wait(600);
+
+  // 3) scale down and fly up into the bar
+  const { x: x1, y: y1 } = intakePoint();
+  el.style.transition = `left ${560/SPEED}ms cubic-bezier(.5,.05,.5,.95), top ${560/SPEED}ms cubic-bezier(.25,.6,.2,1), font-size ${560/SPEED}ms ease-in`;
+  void el.offsetWidth;
+  el.style.left = x1 + 'px';
+  el.style.top = y1 + 'px';
+  el.style.fontSize = '14px';
+  await wait(570);
+  el.remove();
+  spawnRipples(x1, y1);
+  barIntake(bump);
+  await wait(220);
+}
+
+/* ─── Translation sheet ─── */
+function showTranslateSheet({ en, native, lang = 'Hindi' }) {
+  coachScrim.classList.add('show');
+  const sheet = document.createElement('div');
+  sheet.className = 'tr-sheet';
+  sheet.innerHTML = `
+    <div class="handle"></div>
+    <div class="lang-head en"><span class="en-badge">En</span><span>Sarah response ( English )</span></div>
+    <div class="body-txt">${en}</div>
+    <div class="lang-head native">${ICON_TRANSLATE}<span>Translated in ${lang}</span></div>
+    <div class="body-txt native deva">${native}</div>
+  `;
+  screen.appendChild(sheet);
+  requestAnimationFrame(() => sheet.classList.add('show'));
+  return {
+    async close() {
+      sheet.classList.remove('show');
+      sheet.classList.add('out');
+      coachScrim.classList.remove('show');
+      await wait(340);
+      sheet.remove();
+    }
+  };
+}
+
+/* ─── Achievement toast ─── */
+function showToast(text, ms = 2900) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="t-star"><svg viewBox="0 0 24 24"><path d="${STAR_PATH}" fill="#fbbf24"/></svg></span><span>${text}</span>`;
+  screen.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => { el.classList.remove('show'); el.classList.add('hide'); setTimeout(() => el.remove(), 320); }, ms / SPEED);
+}
+
+/* ─── First-response star: flies from top-left → the star tray, fills slot 0 ─── */
+async function flyStarToSlot(g, fromEl, slotIndex = 0) {
+  const sr = screen.getBoundingClientRect();
+  const slot = starsTray.querySelectorAll('.star-slot')[slotIndex];
+  const slotR = slot.getBoundingClientRect();
+  const toX = slotR.left - sr.left + slotR.width / 2;
+  const toY = slotR.top - sr.top + slotR.height / 2;
+  // launch from the top-left corner of the user's answer bubble
+  const br = (fromEl || micPill).getBoundingClientRect();
+  const fromX = br.left - sr.left + 16;
+  const fromY = br.top - sr.top + 12;
+
+  const star = document.createElement('div');
+  star.className = 'fly-star';
+  star.innerHTML = `<svg viewBox="0 0 24 24"><path d="${STAR_PATH}" fill="#fbbf24"/></svg>`;
+  star.style.left = fromX + 'px'; star.style.top = fromY + 'px';
+  screen.appendChild(star);
+
+  // pop into existence
+  star.animate([
+    { transform: 'translate(-50%,-50%) scale(0) rotate(-40deg)', opacity: 0 },
+    { transform: 'translate(-50%,-50%) scale(1.15) rotate(6deg)', opacity: 1 }
+  ], { duration: 340 / SPEED, easing: 'cubic-bezier(0.34,1.56,0.64,1)', fill: 'forwards' });
+  await wait(360); if (aborted(g)) { star.remove(); return; }
+
+  // arc across to the tray, shrinking as it lands
+  const dx = toX - fromX, dy = toY - fromY;
+  star.animate([
+    { transform: 'translate(-50%,-50%) translate(0,0) scale(1.15) rotate(6deg)' },
+    { transform: `translate(-50%,-50%) translate(${dx * 0.5}px, ${dy * 0.5 - 46}px) scale(1.35) rotate(180deg)`, offset: 0.5 },
+    { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) scale(0.5) rotate(360deg)`, opacity: 0.9 }
+  ], { duration: 760 / SPEED, easing: 'cubic-bezier(.45,0,.2,1)', fill: 'forwards' });
+
+  // sparkle trail along the arc
+  let t = 0;
+  const trail = setInterval(() => {
+    t += 60;
+    if (t > 700) { clearInterval(trail); return; }
+    const p = t / 760;
+    const px = fromX + dx * p, py = fromY + dy * p - Math.sin(p * Math.PI) * 46;
+    const s = document.createElement('div');
+    s.className = 'star-trail';
+    s.style.left = px + 'px'; s.style.top = py + 'px';
+    screen.appendChild(s);
+    s.animate([{ opacity: 0.9, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(0.2)' }], { duration: 420, fill: 'forwards' });
+    setTimeout(() => s.remove(), 440);
+  }, 60);
+
+  await wait(780); if (aborted(g)) { star.remove(); clearInterval(trail); return; }
+  clearInterval(trail);
+  star.remove();
+
+  // land: fill this slot with the pop + ring
+  setStars(slotIndex + 1);
+  slot.classList.add('pop');
+  setTimeout(() => slot.classList.remove('pop'), 560);
+  starsTray.classList.remove('pulse'); void starsTray.offsetWidth;
+  sfxChime();
+  await wait(300);
+}
+
+/* ─── Agenda tour: circle a star + show its title/description callout ─── */
+function drawStarCircle(slot) {
+  const sr = screen.getBoundingClientRect();
+  const r = slot.getBoundingClientRect();
+  const size = 46;
+  const cx = r.left - sr.left + r.width / 2, cy = r.top - sr.top + r.height / 2;
+  const el = document.createElement('div');
+  el.className = 'star-circle';
+  el.style.left = (cx - size / 2) + 'px'; el.style.top = (cy - size / 2) + 'px';
+  el.style.width = size + 'px'; el.style.height = size + 'px';
+  el.innerHTML = `<svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="20" fill="none" stroke="#fde047" stroke-width="3" stroke-linecap="round" pathLength="100" style="stroke-dasharray:100;stroke-dashoffset:100;transform:rotate(-90deg);transform-origin:center"/></svg>`;
+  screen.appendChild(el);
+  el.querySelector('circle').animate([{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }],
+    { duration: 520 / SPEED, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+  return el;
+}
+function showCoachCard(anchorSlot, title, desc, native) {
+  const card = document.createElement('div');
+  card.className = 'coach-card';
+  card.innerHTML = `<div class="cc-title">${title}</div><div class="cc-desc">${desc}</div>` +
+    (native ? `<div class="cc-native deva">${native}</div>` : '');
+  screen.appendChild(card);
+  const sr = screen.getBoundingClientRect(), ar = anchorSlot.getBoundingClientRect();
+  const acx = ar.left + ar.width / 2 - sr.left;
+  const cw = card.offsetWidth, m = 14;
+  const left = Math.max(cw / 2 + m, Math.min(sr.width - cw / 2 - m, acx));
+  card.style.left = left + 'px';
+  card.style.top = (ar.bottom - sr.top + 16) + 'px';
+  card.style.setProperty('--arrow-x', Math.max(18, Math.min(cw - 18, acx - left + cw / 2)) + 'px');
+  requestAnimationFrame(() => card.classList.add('show'));
+  return card;
+}
+/* Walk the 3 stars as a guided onboarding: dim, circle+card each, then release */
+async function agendaTour(g, steps) {
+  coachScrim.classList.add('show');
+  const prevPos = starsTray.style.position, prevZ = starsTray.style.zIndex;
+  starsTray.style.position = 'relative'; starsTray.style.zIndex = '60';
+  await wait(300);
+  for (let i = 0; i < steps.length; i++) {
+    if (aborted(g)) break;
+    const slot = starsTray.querySelectorAll('.star-slot')[steps[i].slot];
+    slot.classList.add('hold');
+    const circle = drawStarCircle(slot);
+    tone(560 + i * 120, 0.14, 'sine', 0.045);
+    await wait(360); if (aborted(g)) { circle.remove(); slot.classList.remove('hold'); break; }
+    const card = showCoachCard(slot, steps[i].title, steps[i].desc, steps[i].native);
+    await wait(2500); if (aborted(g)) { card.remove(); circle.remove(); slot.classList.remove('hold'); break; }
+    card.classList.add('out');
+    circle.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, fill: 'forwards' });
+    await wait(240);
+    card.remove(); circle.remove();
+    slot.classList.remove('hold');
+    await wait(220);
+  }
+  starsTray.style.zIndex = prevZ; starsTray.style.position = prevPos;
+  coachScrim.classList.remove('show');
+  await wait(320);
+}
+
+/* ─── Fill a star for real (in place), with a pop + ring + optional tooltip ─── */
+async function fillStar(g, index, tooltipMain, tooltipSub) {
+  const slot = starsTray.querySelectorAll('.star-slot')[index];
+  setStars(index + 1);
+  slot.classList.add('pop');
+  setTimeout(() => slot.classList.remove('pop'), 560);
+  sfxChime();
+  if (tooltipMain) {
+    const tip = showTooltip({ main: tooltipMain, sub: tooltipSub, anchorEl: slot, place: 'below' });
+    await wait(1500); if (aborted(g)) { tip.hide(); return; }
+    tip.hide();
+  } else {
+    await wait(400);
+  }
+}
+
+/* ─── Sarah helpers ─── */
+async function sarahSays(g, html, { gentle = false, loadingMs = 1150, tools = ['translate', 'speaker'], translation = null } = {}) {
+  const res = await addBotMessage({ html, tools, loadingMs, translation });
+  if (gentle) res.bubble.classList.add('gentle');
+  scrollChat();
+  return res;
+}
+/* split long thoughts into two short bubbles; tools only on the last */
+async function sarahSaysSplit(g, lines, { gentle = false, loadingMs = 1200 } = {}) {
+  for (let i = 0; i < lines.length; i++) {
+    if (aborted(g)) return;
+    const last = i === lines.length - 1;
+    const res = await addBotMessage({
+      html: lines[i],
+      tools: last ? ['translate', 'speaker'] : [],
+      loadingMs: i === 0 ? loadingMs : 900
+    });
+    if (gentle) res.bubble.classList.add('gentle');
+    scrollChat();
+    if (!last) await wait(700);
+  }
+}
+/* meta-thinking layer: Sarah visibly connects their inputs, then it fades */
+async function sarahThinks(g, text, dwell = 1500) {
+  const row = document.createElement('div');
+  row.className = 'bubble-row bot';
+  row.innerHTML = `<div class="thought-row">💭 <span>${text}</span></div>`;
+  chat.appendChild(row); scrollChat();
+  await wait(dwell);
+  const t = row.querySelector('.thought-row');
+  if (t) t.classList.add('fade');
+  setTimeout(() => row.remove(), 320);
+}
+function spawnBurst(emoji) {
+  const rows = chat.querySelectorAll('.bubble-row.user');
+  const last = rows[rows.length - 1]; if (!last) return;
+  const b = last.querySelector('.bubble'); if (!b) return;
+  const sr = screen.getBoundingClientRect(), br = b.getBoundingClientRect();
+  const e = document.createElement('div');
+  e.className = 'burst-emoji'; e.textContent = emoji;
+  e.style.left = (br.left - sr.left - 6) + 'px';
+  e.style.top = (br.top - sr.top - 12) + 'px';
+  screen.appendChild(e);
+  setTimeout(() => e.remove(), 1000);
+}
+function addBadge(html) {
+  const row = document.createElement('div');
+  row.className = 'badge-row';
+  row.innerHTML = `<div class="badge-card">${html}</div>`;
+  chat.appendChild(row); scrollChat();
+  return row;
+}
+function micIdleAgain() { micPill.className = 'mic-pill visible idle'; }
+
+/* mic record→submit→user bubble (shared by both speaking turns) */
+async function userSpeaks(g, html, onSubmitted) {
+  await tapAt(micPill, { lead: 200 }); if (aborted(g)) return;
+  micPill.classList.remove('idle'); micPill.classList.add('expanded');
+  startMicWave();
+  await wait(1700); if (aborted(g)) { stopMicWave(); return; }
+  const btn = micPill.querySelector('.pill-confirm');
+  await tapAt(btn, { lead: 180 }); if (aborted(g)) { stopMicWave(); return; }
+  stopMicWave();
+  micPill.classList.remove('expanded'); micPill.classList.add('submitting');
+  await wait(320); micPill.classList.add('tick-only'); await wait(200);
+  micPill.classList.remove('submitting', 'tick-only'); micPill.classList.add('gone');
+  // Submitted: clear the hint FIRST — never hint + chat on screen together
+  if (onSubmitted) { await onSubmitted(); if (aborted(g)) return; }
+  const { row: lr, bubble: lb } = addBubble({ kind: 'user', html: `<span></span><span></span><span></span>` });
+  lb.classList.remove('user'); lb.classList.add('loading');
+  scrollChat();
+  await wait(800); if (aborted(g)) { lr.remove(); return; }
+  lr.remove();
+  addBubble({ kind: 'user', html, tools: ['speaker'] });
+  scrollChat();
+  await wait(400);
+}
+
+/* demo profile picked through the flow */
+const PICKS = ['Movies & shows', 'Books', 'Gardening'];
+const PICK_EMOJI = { 'Movies & shows': '🎬', 'Books': '📖', 'Gardening': '🌱' };
+
+/* Sarah thinking — a child of the loader ROW, sitting fully above the bubble
+   (bottom:100%), so she tracks the bubble's size/position automatically. */
+function attachThinkingSarah(row) {
+  const el = document.createElement('div');
+  el.className = 'sarah-think';
+  el.innerHTML = `<img src="sarah-thinking.png" alt="Sarah thinking">`;
+  row.style.position = 'relative';
+  row.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  return el;
+}
+function dismissThinkingSarah(el) {
+  if (!el) return;
+  el.classList.remove('show'); el.classList.add('away');
+  setTimeout(() => el.remove(), 660);
+}
+
+/* ─── Assembly Loader: a generative loading bubble that personalises from
+   their answers, gradient-glowing internally, then BECOMES the question ─── */
+async function assembleQuestion(g, statuses, finalHTML, translation) {
+  const { row, bubble } = addBubble({ kind: 'bot', html: `<div class="asm-inner"><span class="asm-spin"></span><span class="asm-text">${statuses[0]}</span></div>` });
+  bubble.classList.add('assembling');
+  const textEl = bubble.querySelector('.asm-text');
+  tone(360, 0.12, 'sine', 0.03);
+  // Headroom above the loader so her full body has room; she tracks the bubble
+  row.style.marginTop = '134px';
+  scrollChat();
+  const sarah = attachThinkingSarah(row);
+  await wait(400); if (aborted(g)) return null;   // let the first status settle
+  for (let i = 1; i < statuses.length; i++) {
+    await wait(1750); if (aborted(g)) return null;  // dwell on each status so it's readable
+    textEl.style.opacity = '0';
+    await wait(360); if (aborted(g)) return null;   // gentle crossfade out
+    textEl.innerHTML = statuses[i];
+    textEl.style.opacity = '1';
+    tone(420 + i * 60, 0.08, 'triangle', 0.03);
+  }
+  await wait(1750); if (aborted(g)) return null;     // hold on the final status
+
+  // she goes away first, and the loader slides up into place, then resolves
+  dismissThinkingSarah(sarah);
+  row.style.transition = 'margin-top 440ms cubic-bezier(.4,0,.2,1)';
+  row.style.marginTop = '0px';
+  await wait(440); if (aborted(g)) return null;
+
+  // resolve — flare, chime, and crossfade the loader into the real question
+  bubble.classList.add('resolving');
+  sfxChime();
+  await wait(420); if (aborted(g)) return null;
+  textEl.style.opacity = '0';
+  await wait(340); if (aborted(g)) return null;
+  const inner = bubble.querySelector('.asm-inner');
+  inner.innerHTML = `<span class="asm-text" style="opacity:0">${finalHTML}</span>`;
+  const newText = inner.querySelector('.asm-text');
+  requestAnimationFrame(() => { newText.style.opacity = '1'; });
+  await wait(560); if (aborted(g)) return null;
+
+  // settle into a normal bot bubble + attach tools/translation
+  bubble.classList.remove('assembling', 'resolving');
+  bubble.classList.add('settle');
+  setTimeout(() => bubble.classList.remove('settle'), 520);
+  // unwrap: promote the question text to the bubble body
+  bubble.innerHTML = finalHTML;
+  if (translation) {
+    const tr = document.createElement('div');
+    tr.className = 'translation';
+    tr.innerHTML = `<div class="t-txt deva">${translation}</div>`;
+    bubble.appendChild(tr);
+  }
+  const t = document.createElement('div');
+  t.className = 'bubble-tools';
+  ['translate', 'speaker'].forEach(type => t.appendChild(buildTool(type)));
+  bubble.appendChild(t);
+  scrollChat();
+  return { row, bubble };
+}
+
+/* ─── 1 · Greeting ─── */
+async function scene1_greeting(g) {
+  CURRENT_SCENE = 1; updateSceneUI();
+  await sarahSays(g, `Hi! I'm Sarah 👋`, { loadingMs: 1160, tools: [] });
+  requestAnimationFrame(() => { positionSarah(); showSarah(); });
+  await wait(450); if (aborted(g)) return;
+  await sarahSays(g, `See these 3 stars up top? ⭐ That's today's plan. Let me walk you through.`, {
+    translation: `ऊपर ये 3 सितारे देख रहे हैं? ⭐ यही आज की योजना है। मैं आपको समझाती हूँ।`,
+    loadingMs: 1020
+  });
+  PROGRESS = 10; setProgress(PROGRESS);
+  await wait(900);
+}
+
+/* ─── 2 · Agenda: guided tour of the 3 stars (no chat, coach-mark style) ─── */
+async function scene2_agenda(g) {
+  CURRENT_SCENE = 2; updateSceneUI();
+  await agendaTour(g, [
+    { slot: 0, title: 'Get to know you', desc: 'Answer a few quick questions so I can make this yours.',
+      native: 'कुछ छोटे सवालों के जवाब दें ताकि मैं इसे आपके अनुसार बना सकूँ।' },
+    { slot: 1, title: 'Your first chat', desc: 'Your first real conversation, built from your answers.',
+      native: 'आपके जवाबों से बनी आपकी पहली असली बातचीत।' },
+    { slot: 2, title: 'Practice & improve', desc: 'Soon, we practice together and fix little mistakes.',
+      native: 'जल्द ही, हम साथ अभ्यास करेंगे और छोटी गलतियाँ सुधारेंगे।' }
+  ]);
+  if (aborted(g)) return;
+  PROGRESS = 14; setProgress(PROGRESS);
+  await wait(500);
+}
+
+/* ─── 3 · Translate coach ─── */
+async function scene3_translateCoach(g) {
+  CURRENT_SCENE = 3; updateSceneUI();
+  const { bubble } = await sarahSays(g, `If my English is hard, tap this button. It shows my words in your language.`, { loadingMs: 1090 });
+  await wait(600); if (aborted(g)) return;
+  const greeting = bubble.parentElement;
+  const trBtn = bubble.querySelector('.icon-btn.translate');
+  if (trBtn) {
+    const coach = await coachMark({
+      target: trBtn, main: 'Tap to Translate', sub: 'अनुवाद के लिए टैप करें',
+      place: 'below', dwell: 1500
+    });
+    if (aborted(g)) { await coach.dismiss(); return; }
+    await tapAt(trBtn, { lead: 240 });
+    await coach.dismiss();
+  }
+  if (aborted(g)) return;
+  // demonstrate: the translation opens as a bottom sheet, not inline
+  const sheet = showTranslateSheet({
+    en: `If my English is hard, tap this button. It shows my words in your language.`,
+    native: `अगर मेरी अंग्रेज़ी कठिन लगे, तो यह बटन दबाइए। यह मेरे शब्द आपकी भाषा में दिखाएगा।`,
+    lang: 'Hindi'
+  });
+  await wait(3000);
+  await sheet.close();
+  if (aborted(g)) return;
+  PROGRESS = 16; setProgress(PROGRESS);
+  await wait(700);
+}
+
+/* ─── 3 · Interests: picks fly into the collector bar ─── */
+async function scene4_interests(g) {
+  CURRENT_SCENE = 4; updateSceneUI();
+  await sarahSays(g, `First: what do you love? Pick a few.`, { loadingMs: 1160 });
+  await wait(800); if (aborted(g)) return;
+
+  const chipsHTML = TOPICS.map(([emo, label], i) =>
+    `<div class="topic-chip" data-topic="${label}" style="animation-delay:${i * 30}ms"><span class="emo">${emo}</span>${label}</div>`
+  ).join('');
+  openDock(`
+    <div class="dock-label">So I know what to talk about with you · pick 3</div>
+    <div class="chip-wrap" id="chipWrap">${chipsHTML}</div>
+  `, 'right-align');
+  await wait(500); if (aborted(g)) return;
+
+  for (let i = 0; i < PICKS.length; i++) {
+    const chip = inputDock.querySelector(`[data-topic="${PICKS[i]}"]`);
+    await tapAt(chip, { lead: 220 }); if (aborted(g)) return;
+    chip.classList.add('selected', 'punch');
+    setTimeout(() => chip.classList.remove('punch'), 360);
+    await collect(PICK_EMOJI[PICKS[i]], chip, 5);    // 🎬/📖/🌱 takes the stage, then feeds the bar
+    if (aborted(g)) return;
+    await wait(260); if (aborted(g)) return;
+  }
+  // third pick lands → auto-advance, no button needed
+  await wait(500); if (aborted(g)) return;
+  const selectedChips = PICKS.map(p => inputDock.querySelector(`[data-topic="${p}"]`));
+  fadeDockExcept(selectedChips);
+  await wait(360); if (aborted(g)) return;
+  await morphChipsTogether(PICKS.map(p => ({
+    chip: inputDock.querySelector(`[data-topic="${p}"]`),
+    html: `<span class="emo">${PICK_EMOJI[p]}</span>${p}`
+  })));
+  if (aborted(g)) return;
+  await closeDock(); if (aborted(g)) return;
+
+  await sarahThinks(g, `🎬 + 📖 + 🌱 … good taste 🤔`);
+  if (aborted(g)) return;
+  await sarahSays(g, `Movies AND books? We will never run out of things to talk about 😄`, { loadingMs: 1020 });
+  await wait(700);
+}
+
+/* ─── 4 · Goal probe: she already knows the why — she digs deeper ─── */
+async function scene5_goalProbe(g) {
+  CURRENT_SCENE = 5; updateSceneUI();
+  await sarahSaysSplit(g, [
+    `You told us you want English for everyday talks 🗣️`,
+    `Where should you feel confident first?`
+  ], { loadingMs: 1230 });
+  if (aborted(g)) return;
+  await wait(800);
+
+  const opts = [['🤝', 'Meeting new people'], ['💬', 'Small talk'], ['👥', 'Speaking in groups'], ['📱', 'Calls & voice notes']];
+  openDock(`
+    <div class="dock-label">So our chats train the real thing</div>
+    <div class="quick-wrap">
+      ${opts.map(([e, o], i) => `<div class="quick-chip" data-opt="${o}" style="animation-delay:${i * 55}ms">${e} ${o}</div>`).join('')}
+    </div>
+  `, 'right-align');
+  await wait(700); if (aborted(g)) return;
+
+  const pick = inputDock.querySelector('[data-opt="Meeting new people"]');
+  await tapAt(pick, { lead: 240 }); if (aborted(g)) return;
+  pick.classList.add('selected', 'punch');
+  await collect('🤝', pick, 8);
+  if (aborted(g)) return;
+  fadeDockExcept([pick]);
+  await wait(340); if (aborted(g)) return;
+  await flipMorph(pick, `🤝 Meeting new people`); if (aborted(g)) return;
+  await closeDock(); if (aborted(g)) return;
+
+  await sarahSays(g, `Meeting new people. Lovely. We will practice real conversations, the easy way.`, { loadingMs: 1020 });
+  await wait(900);
+}
+
+/* ─── 5 · Your day: context for her examples ─── */
+async function scene6_day(g) {
+  CURRENT_SCENE = 6; updateSceneUI();
+  await sarahSays(g, `What does your day look like?`, { loadingMs: 1160 });
+  await wait(800); if (aborted(g)) return;
+
+  const opts = [['💼', 'I work'], ['📚', 'I study'], ['🏠', 'I manage home'], ['🌴', 'Taking a break']];
+  openDock(`
+    <div class="dock-label">So my examples fit your life</div>
+    <div class="quick-wrap">
+      ${opts.map(([e, o], i) => `<div class="quick-chip" data-opt="${o}" style="animation-delay:${i * 55}ms">${e} ${o}</div>`).join('')}
+    </div>
+  `, 'right-align');
+  await wait(700); if (aborted(g)) return;
+
+  const pick = inputDock.querySelector('[data-opt="I work"]');
+  await tapAt(pick, { lead: 240 }); if (aborted(g)) return;
+  pick.classList.add('selected', 'punch');
+  await collect('💼', pick, 8);
+  if (aborted(g)) return;
+  fadeDockExcept([pick]);
+  await wait(340); if (aborted(g)) return;
+  await flipMorph(pick, `💼 I work`); if (aborted(g)) return;
+  await closeDock(); if (aborted(g)) return;
+  await wait(500);
+}
+
+/* ─── 6 · Gender: quick, with its why ─── */
+async function scene7_gender(g) {
+  CURRENT_SCENE = 7; updateSceneUI();
+  await sarahSays(g, `Last quick one about you.`, { loadingMs: 1020 });
+  await wait(800); if (aborted(g)) return;
+
+  const opts = ['Male', 'Female', 'Prefer not to say'];
+  openDock(`
+    <div class="dock-label">So I talk about you the right way</div>
+    <div class="quick-wrap">
+      ${opts.map((o, i) => `<div class="quick-chip" data-opt="${o}" style="animation-delay:${i * 55}ms">${o}</div>`).join('')}
+    </div>
+  `, 'right-align');
+  await wait(650); if (aborted(g)) return;
+
+  const pick = inputDock.querySelector('[data-opt="Male"]');
+  await tapAt(pick, { lead: 240 }); if (aborted(g)) return;
+  pick.classList.add('selected', 'punch');
+  await collect('🙋', pick, 8);
+  if (aborted(g)) return;
+  fadeDockExcept([pick]);
+  await wait(340); if (aborted(g)) return;
+  await flipMorph(pick, `Male`); if (aborted(g)) return;
+  await closeDock(); if (aborted(g)) return;
+  await wait(450);
+}
+
+/* ─── 7 · Feeling check: the fear-killer, right before the mic ─── */
+async function scene8_feeling(g) {
+  CURRENT_SCENE = 8; updateSceneUI();
+  await sarahSays(g, `Before we talk. How do you feel about speaking English?`, { loadingMs: 1230 });
+  await wait(800); if (aborted(g)) return;
+
+  const opts = [['😄', 'Excited'], ['🙂', 'Okay'], ['😅', 'A little nervous'], ['🫣', 'Very shy']];
+  openDock(`
+    <div class="dock-label">Honest answer. It helps me go at your pace</div>
+    <div class="quick-wrap">
+      ${opts.map(([e, o], i) => `<div class="quick-chip" data-opt="${o}" style="animation-delay:${i * 55}ms">${e} ${o}</div>`).join('')}
+    </div>
+  `, 'right-align');
+  await wait(750); if (aborted(g)) return;
+
+  const pick = inputDock.querySelector('[data-opt="A little nervous"]');
+  await tapAt(pick, { lead: 240 }); if (aborted(g)) return;
+  pick.classList.add('selected', 'punch');
+  await collect('😅', pick, 8);
+  if (aborted(g)) return;
+  fadeDockExcept([pick]);
+  await wait(340); if (aborted(g)) return;
+  await flipMorph(pick, `😅 A little nervous`); if (aborted(g)) return;
+  await closeDock(); if (aborted(g)) return;
+
+  // Mood-matched bridge into the mic — this line is the whole point of the question
+  await sarahSaysSplit(g, [
+    `Most people say nervous. That's completely normal 😊`,
+    `We go slow. One small answer at a time. I promise.`
+  ], { gentle: true, loadingMs: 1160 });
+  await wait(700);
+}
+
+/* ─── 9 · Impromptu: get-to-know-you done (⭐1) → Assembly Loader → question → ⭐2 ─── */
+async function scene9_impromptu(g) {
+  CURRENT_SCENE = 9; updateSceneUI();
+  await wait(400); if (aborted(g)) return;
+
+  // Act 1 complete: a star flies from the chat up to the tray (⭐1)
+  const { bubble: doneBubble } = await sarahSays(g, `That's everything I wanted to know 😊`, { loadingMs: 1020 });
+  await wait(500); if (aborted(g)) return;
+  PROGRESS = 70; setProgress(PROGRESS);
+  await flyStarToSlot(g, doneBubble, 0);
+  if (aborted(g)) return;
+  showToast('Great, I know you now!');
+  await wait(800); if (aborted(g)) return;
+
+  // Assembly Loader — Sarah's voice, echoing their real answers, then becomes the question
+  const q = await assembleQuestion(g,
+    [
+      `Checking everything you told me…`,
+      `You like movies and books 🎬 📖`,
+      `And you want to meet new people 🤝`
+    ],
+    `Here is your first question. Tell me about a story you love, from a movie or a book.`,
+    `यह रहा आपका पहला सवाल। मुझे कोई ऐसी कहानी बताइए जो आपको पसंद हो, किसी फ़िल्म या किताब से।`
+  );
+  if (aborted(g) || !q) return;
+  PROGRESS = 86; setProgress(PROGRESS);
+  await wait(700); if (aborted(g)) return;
+
+  // First time the mic appears — coach it here
+  micPill.classList.add('visible', 'idle');
+  await wait(400); if (aborted(g)) return;
+  const coach = await coachMark({
+    target: micPill, main: 'Tap to Speak', sub: 'बोलने के लिए टैप करें',
+    place: 'above', dwell: 1500
+  });
+  await coach.dismiss();
+  if (aborted(g)) return;
+
+  // stuck beat → frame hint (not a full sentence — their words, our scaffold)
+  await wait(1500); if (aborted(g)) return;
+  const hintChipRow = addHintChip();
+  await wait(800); if (aborted(g)) return;
+  await tapAt(hintChipRow.querySelector('.hint-chip'), { lead: 240 }); if (aborted(g)) return;
+  hintChipRow.remove();
+  const hintRow = addHintSuggestion(`You can start with: "I love the story of..."`, `आप शुरू कर सकते हैं: "I love the story of..."`);
+  await wait(1600); if (aborted(g)) return;
+
+  await userSpeaks(g, `I love the story of 3 Idiots. It is about friends and dreams.`, async () => {
+    const hb = hintRow.querySelector('.hint-suggest');
+    if (hb) hb.classList.add('fade');
+    await wait(300);
+    hintRow.remove();
+  });
+  if (aborted(g)) return;
+
+  // Celebration: they answered with no options. That's the whole game.
+  PROGRESS = 100; setProgress(100);
+  progressFill.classList.remove('glowpulse'); void progressFill.offsetWidth;
+  progressFill.classList.add('glowpulse');
+
+  // First-conversation reward: a star flies FROM the answer bubble → the tray
+  // (star 2, since star 1 is already earned), then the achievement toast.
+  const answerBubble = chat.querySelector('.bubble-row.user:last-child .bubble');
+  await wait(360); if (aborted(g)) return;
+  await flyStarToSlot(g, answerBubble, 1);
+  if (aborted(g)) return;
+  showToast('You had your first conversation!');
+  await wait(700); if (aborted(g)) return;
+
+  await sarahSaysSplit(g, [
+    `You did it! Your first real answer. No options, just you 🎉`,
+    `Next time: we practice meeting someone new. The friendly kind 😄 See you tomorrow!`
+  ], { loadingMs: 1230 });
+  await wait(2600);
+}
+
+/* ─── Master loop ─── */
+const SCENES = [null, scene1_greeting, scene2_agenda, scene3_translateCoach, scene4_interests, scene5_goalProbe,
+                scene6_day, scene7_gender, scene8_feeling, scene9_impromptu];
+
+async function runFlow() {
+  const g = ++CURRENT_GEN;
+  while (g === CURRENT_GEN) {
+    resetAll();
+    await wait(240);
+    if (g !== CURRENT_GEN) break;
+    try {
+      for (let i = 1; i <= 9; i++) { await SCENES[i](g); if (g !== CURRENT_GEN) break; }
+    } catch (e) { console.error('Scene failed:', e); }
+    if (g !== CURRENT_GEN) break;
+    loopFade.classList.add('show');
+    await wait(700);
+    if (g !== CURRENT_GEN) break;
+    await wait(160);
+  }
+}
+
+/* ─── Scene jump: rebuild prior chat state instantly, then play forward ─── */
+function addChoiceBubble(html) {
+  addBubble({ kind: 'user', html });
+  const b = chat.lastElementChild.querySelector('.bubble');
+  b.classList.add('choice'); b.classList.remove('user');
+}
+function snapshotForScene(target) {
+  if (target >= 2) {
+    addBubble({ kind: 'bot', html: `Hi! I'm Sarah 👋`, tools: [] });
+    addBubble({
+      kind: 'bot',
+      html: `See these 3 stars up top? ⭐ That's today's plan. Let me walk you through.`,
+      tools: ['translate', 'speaker'],
+      translation: `ऊपर ये 3 सितारे देख रहे हैं? ⭐ यही आज की योजना है। मैं आपको समझाती हूँ।`
+    });
+    requestAnimationFrame(() => { positionSarah(); showSarah(); });
+    PROGRESS = 10;
+  }
+  if (target >= 3) {
+    // agenda tour leaves no chat bubbles
+    PROGRESS = 14;
+  }
+  if (target >= 4) {
+    addBubble({ kind: 'bot', html: `If my English is hard, tap this button. It shows my words in your language.`, tools: ['translate', 'speaker'] });
+    PROGRESS = 16;
+  }
+  if (target >= 5) {
+    addBubble({ kind: 'bot', html: `First: what do you love? Pick a few.`, tools: ['translate', 'speaker'] });
+    PICKS.forEach(p => addChoiceBubble(`<span class="emo">${PICK_EMOJI[p]}</span>${p}`));
+    addBubble({ kind: 'bot', html: `Movies AND books? We will never run out of things to talk about 😄`, tools: ['translate', 'speaker'] });
+    PROGRESS = 31;
+  }
+  if (target >= 6) {
+    addBubble({ kind: 'bot', html: `Where should you feel confident first?`, tools: ['translate', 'speaker'] });
+    addChoiceBubble(`🤝 Meeting new people`);
+    addBubble({ kind: 'bot', html: `Meeting new people. Lovely. We will practice real conversations, the easy way.`, tools: ['translate', 'speaker'] });
+    PROGRESS = 39;
+  }
+  if (target >= 7) {
+    addBubble({ kind: 'bot', html: `What does your day look like?`, tools: ['translate', 'speaker'] });
+    addChoiceBubble(`💼 I work`);
+    PROGRESS = 47;
+  }
+  if (target >= 8) {
+    addBubble({ kind: 'bot', html: `Last quick one about you.`, tools: ['translate', 'speaker'] });
+    addChoiceBubble(`Male`);
+    PROGRESS = 55;
+  }
+  if (target >= 9) {
+    addBubble({ kind: 'bot', html: `Before we talk. How do you feel about speaking English?`, tools: ['translate', 'speaker'] });
+    addChoiceBubble(`😅 A little nervous`);
+    addBubble({ kind: 'bot', html: `We go slow. One small answer at a time. I promise.`, tools: ['translate', 'speaker'] });
+    PROGRESS = 66;
+  }
+  setProgress(PROGRESS);
+  scrollChat();
+}
+
+async function jumpTo(sceneNum) {
+  const g = ++CURRENT_GEN;
+  resetAll();
+  CURRENT_SCENE = sceneNum; updateSceneUI();
+  if (sceneNum > 1) snapshotForScene(sceneNum);
+  await wait(200);
+  if (g !== CURRENT_GEN) return;
+  for (let i = sceneNum; i <= 9; i++) { await SCENES[i](g); if (g !== CURRENT_GEN) return; }
+  loopFade.classList.add('show');
+  await wait(700);
+  if (g !== CURRENT_GEN) return;
+  runFlow();
+}
+
+/* ─── Helpers ─── */
+function scrollChat() { requestAnimationFrame(() => { chat.scrollTop = chat.scrollHeight; }); }
+function updateSceneUI() {
+  readout.textContent = 'Scene ' + CURRENT_SCENE;
+  sceneJumps.querySelectorAll('button').forEach(b => b.classList.toggle('active', parseInt(b.dataset.scene, 10) === CURRENT_SCENE));
+}
+
+/* ─── Debug controls ─── */
+document.getElementById('replay').addEventListener('click', () => { CURRENT_GEN++; loopFade.classList.remove('show'); runFlow(); });
+const pauseBtn = document.getElementById('pauseBtn');
+pauseBtn.addEventListener('click', () => { PAUSED = !PAUSED; pauseBtn.textContent = PAUSED ? '▶ Play' : '⏸ Pause'; });
+document.getElementById('speedSelect').addEventListener('change', (e) => { SPEED = parseFloat(e.target.value); });
+sceneJumps.querySelectorAll('button').forEach(b => b.addEventListener('click', () => jumpTo(parseInt(b.dataset.scene, 10))));
+
+/* ─── Boot ─── */
+window.addEventListener('load', () => {
+  const qp = new URLSearchParams(location.search);
+  const jump = parseInt(qp.get('scene') || '0', 10);
+  if (jump >= 1 && jump <= 9) setTimeout(() => jumpTo(jump), 400);
+  else setTimeout(runFlow, 500);
+});
+window.addEventListener('resize', positionSarah);
+chat.addEventListener('scroll', positionSarah);
+new MutationObserver(() => requestAnimationFrame(positionSarah)).observe(chat, { childList: true, subtree: true });
+
+const sarahImg = document.getElementById('sarah-img');
+sarahImg.addEventListener('load', () => { document.getElementById('sarah-fb').style.display = 'none'; sarahImg.style.display = 'block'; });
+</script>
+</body>
+</html>
