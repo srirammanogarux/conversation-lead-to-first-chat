@@ -101,8 +101,11 @@ body {
   padding: 6px 0 10px; letter-spacing: -0.01em;
 }
 .header-row {
-  display: grid; grid-template-columns: 32px 1fr auto; gap: 14px; align-items: center;
+  display: grid; grid-template-columns: 30px 1fr auto auto; gap: 10px; align-items: center;
 }
+.flag-btn { width: 30px; height: 30px; display: grid; place-items: center; cursor: pointer; color: rgba(255,255,255,0.45); transition: color 200ms ease; }
+.flag-btn:hover { color: var(--red-soft); }
+.flag-btn svg { width: 19px; height: 19px; }
 .back-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .back-btn svg { width: 24px; height: 24px; }
 
@@ -465,7 +468,7 @@ body {
   70%  { opacity: 1; transform: translateY(-12px) scale(1); }
   100% { opacity: 0; transform: translateY(-20px) scale(0.9); }
 }
-.bubble.bot.gentle { background: #2c2531; }
+.bubble.bot.gentle { background: var(--bubble-bot); }
 .cb-tag {
   display: inline-flex; align-items: center; gap: 5px;
   background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.45);
@@ -580,6 +583,37 @@ body {
 .toast .t-star { width: 20px; height: 20px; flex-shrink: 0; }
 .toast .t-star svg { width: 100%; height: 100%; filter: drop-shadow(0 0 5px var(--gold-glow)); }
 
+/* ─── Flag / feedback sheet ─── */
+.flag-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 64;
+  background: linear-gradient(180deg, #201b34 0%, #14101f 100%);
+  border-top: 1px solid rgba(255,255,255,0.1); border-radius: 28px 28px 0 0;
+  padding: 14px 20px 22px; max-height: 84%;
+  display: flex; flex-direction: column;
+  transform: translateY(100%); transition: transform 460ms cubic-bezier(.25,.1,.25,1);
+}
+.flag-sheet.show { transform: translateY(0); }
+.flag-sheet.out { transform: translateY(100%); transition: transform 320ms cubic-bezier(.4,0,1,1); }
+.fs-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+.fs-scroll::-webkit-scrollbar { display: none; }
+.coach-scrim.flag-up { z-index: 63; }
+.fs-handle { width: 110px; height: 5px; background: rgba(255,255,255,0.3); border-radius: 3px; margin: 0 auto 18px; flex-shrink: 0; }
+.fs-title { color: #fff; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; }
+.fs-sub { color: var(--txt-dim); font-size: 13.5px; margin: 6px 0 18px; }
+.fs-item { border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; margin-bottom: 10px; overflow: hidden; transition: border-color 200ms ease, background 200ms ease; }
+.fs-item.open { border-color: rgba(124,92,255,0.6); background: rgba(124,92,255,0.07); }
+.fs-chip { display: flex; align-items: center; gap: 11px; padding: 14px 16px; cursor: pointer; color: #e8e6f0; font-size: 15px; font-weight: 600; }
+.fs-emo { font-size: 18px; flex-shrink: 0; }
+.fs-check { margin-left: auto; width: 22px; height: 22px; border-radius: 50%; border: 1.6px solid rgba(255,255,255,0.25); display: grid; place-items: center; color: transparent; font-size: 12px; font-weight: 800; flex-shrink: 0; transition: background 200ms ease, border-color 200ms ease, color 200ms ease; }
+.fs-item.open .fs-check { background: var(--purple-1); border-color: var(--purple-1); color: #fff; }
+.fs-note { max-height: 0; opacity: 0; padding: 0 16px; transition: max-height 340ms cubic-bezier(.25,.1,.25,1), opacity 260ms ease, padding 340ms ease; }
+.fs-item.open .fs-note { max-height: 110px; opacity: 1; padding: 0 16px 14px; }
+.fs-note textarea { width: 100%; height: 62px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 12px; color: #fff; font-family: inherit; font-size: 14px; line-height: 1.4; resize: none; }
+.fs-note textarea::placeholder { color: rgba(255,255,255,0.32); }
+.fs-note textarea:focus { outline: none; border-color: rgba(124,92,255,0.6); }
+.fs-submit { flex-shrink: 0; width: 100%; height: 52px; border: 0; border-radius: 26px; margin-top: 14px; padding-top: 0; font-family: inherit; font-weight: 800; font-size: 15.5px; color: #fff; cursor: pointer; background: linear-gradient(180deg, #7c5cff 0%, #5b3fed 100%); box-shadow: 0 10px 26px -8px rgba(124,92,255,0.7); }
+.fs-submit:disabled { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.38); box-shadow: none; cursor: default; }
+
 /* ─── Home indicator ─── */
 .home-indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 130px; height: 5px; background: #fff; border-radius: 4px; opacity: 0.85; z-index: 51; }
 
@@ -639,6 +673,9 @@ body {
             <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           </div>
           <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="flag-btn" id="flagBtn" title="Report an issue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+          </div>
           <div class="stars-tray" id="starsTray">
             <div class="star-slot" data-slot="0">
               <svg class="star-empty" viewBox="0 0 24 24"><path d="M12 2.5L14.5 9L21.5 9.2L16 13.6L18.3 20.5L12 16.5L5.7 20.5L8 13.6L2.5 9.2L9.5 9L12 2.5z"/></svg>
@@ -680,6 +717,16 @@ body {
       <div class="coach-scrim" id="coachScrim"></div>
       <div class="input-dock" id="inputDock"></div>
 
+      <div class="flag-sheet" id="flagSheet">
+        <div class="fs-handle"></div>
+        <div class="fs-scroll">
+          <div class="fs-title">What went wrong in this chat?</div>
+          <div class="fs-sub">Tap what happened — add a note if you'd like.</div>
+          <div id="flagItems"></div>
+        </div>
+        <button class="fs-submit" id="flagSubmit">Send feedback</button>
+      </div>
+
       <div class="loop-fade" id="loopFade"></div>
     </div>
   </div>
@@ -696,8 +743,6 @@ body {
     <button data-scene="5">5</button>
     <button data-scene="6">6</button>
     <button data-scene="7">7</button>
-    <button data-scene="8">8</button>
-    <button data-scene="9">9</button>
   </div>
   <label class="speed-control">Speed
     <select id="speedSelect"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
@@ -1088,6 +1133,7 @@ function resetAll() {
   micPill.className = 'mic-pill'; stopMicWave();
   hideSarah();
   screen.querySelectorAll('.toast, .fly-star, .star-trail, .coach-card, .star-circle').forEach(e => e.remove());
+  const fSheet = document.getElementById('flagSheet'); if (fSheet) fSheet.classList.remove('show','out');
   starsTray.querySelectorAll('.star-slot').forEach(s => s.classList.remove('pop'));
   PROGRESS = 6; setProgress(PROGRESS);
   setStars(0);
@@ -1478,6 +1524,12 @@ async function userSpeaks(g, html, onSubmitted) {
 /* demo profile picked through the flow */
 const PICKS = ['Movies & shows', 'Books', 'Gardening'];
 const PICK_EMOJI = { 'Movies & shows': '🎬', 'Books': '📖', 'Gardening': '🌱' };
+const OCCUPATIONS = [
+  ['💼','Office & business'], ['🏪','Business owner'], ['🔍','Looking for work'], ['🎓','Student'],
+  ['🩺','Healthcare'], ['🍔','Restaurant & food'], ['🛍️','Retail & service'], ['🏗️','Construction'],
+  ['🏭','Factory & warehouse'], ['🚗','Driver & delivery'], ['🏠','At home / family'], ['✨','Something else']
+];
+const OCC_PICK = ['💼', 'Office & business'];
 
 /* Sarah thinking — a child of the loader ROW, sitting fully above the bubble
    (bottom:100%), so she tracks the bubble's size/position automatically. */
@@ -1658,69 +1710,37 @@ async function scene4_interests(g) {
   await wait(700);
 }
 
-/* ─── 4 · Goal probe: she already knows the why — she digs deeper ─── */
-async function scene5_goalProbe(g) {
+/* ─── 5 · Occupation: real industry, styled like the interest cloud ─── */
+async function scene5_occupation(g) {
   CURRENT_SCENE = 5; updateSceneUI();
-  await sarahSaysSplit(g, [
-    `You told us you want English for everyday talks 🗣️`,
-    `Where should you feel confident first?`
-  ], { loadingMs: 1230 });
-  if (aborted(g)) return;
-  await wait(800);
-
-  const opts = [['🤝', 'Meeting new people'], ['💬', 'Small talk'], ['👥', 'Speaking in groups'], ['📱', 'Calls & voice notes']];
-  openDock(`
-    <div class="dock-label">So our chats train the real thing</div>
-    <div class="quick-wrap">
-      ${opts.map(([e, o], i) => `<div class="quick-chip" data-opt="${o}" style="animation-delay:${i * 55}ms">${e} ${o}</div>`).join('')}
-    </div>
-  `, 'right-align');
-  await wait(700); if (aborted(g)) return;
-
-  const pick = inputDock.querySelector('[data-opt="Meeting new people"]');
-  await tapAt(pick, { lead: 240 }); if (aborted(g)) return;
-  pick.classList.add('selected', 'punch');
-  await collect('🤝', pick, 8);
-  if (aborted(g)) return;
-  fadeDockExcept([pick]);
-  await wait(340); if (aborted(g)) return;
-  await flipMorph(pick, `🤝 Meeting new people`); if (aborted(g)) return;
-  await closeDock(); if (aborted(g)) return;
-
-  await sarahSays(g, `Meeting new people. Lovely. We will practice real conversations, the easy way.`, { loadingMs: 1020 });
-  await wait(900);
-}
-
-/* ─── 5 · Your day: context for her examples ─── */
-async function scene6_day(g) {
-  CURRENT_SCENE = 6; updateSceneUI();
-  await sarahSays(g, `What does your day look like?`, { loadingMs: 1160 });
+  await sarahSays(g, `And what do you do? It shapes our conversations.`, { loadingMs: 1100 });
   await wait(800); if (aborted(g)) return;
 
-  const opts = [['💼', 'I work'], ['📚', 'I study'], ['🏠', 'I manage home'], ['🌴', 'Taking a break']];
+  const chipsHTML = OCCUPATIONS.map(([emo, label], i) =>
+    `<div class="topic-chip" data-topic="${label}" style="animation-delay:${i * 26}ms"><span class="emo">${emo}</span>${label}</div>`
+  ).join('');
   openDock(`
-    <div class="dock-label">So my examples fit your life</div>
-    <div class="quick-wrap">
-      ${opts.map(([e, o], i) => `<div class="quick-chip" data-opt="${o}" style="animation-delay:${i * 55}ms">${e} ${o}</div>`).join('')}
-    </div>
+    <div class="dock-label">So we practice conversations from your world</div>
+    <div class="chip-wrap">${chipsHTML}</div>
   `, 'right-align');
-  await wait(700); if (aborted(g)) return;
+  await wait(600); if (aborted(g)) return;
 
-  const pick = inputDock.querySelector('[data-opt="I work"]');
-  await tapAt(pick, { lead: 240 }); if (aborted(g)) return;
-  pick.classList.add('selected', 'punch');
-  await collect('💼', pick, 8);
+  const chip = inputDock.querySelector(`[data-topic="${OCC_PICK[1]}"]`);
+  await tapAt(chip, { lead: 240 }); if (aborted(g)) return;
+  chip.classList.add('selected', 'punch');
+  await collect(OCC_PICK[0], chip, 12);
   if (aborted(g)) return;
-  fadeDockExcept([pick]);
-  await wait(340); if (aborted(g)) return;
-  await flipMorph(pick, `💼 I work`); if (aborted(g)) return;
+  fadeDockExcept([chip]);
+  await wait(360); if (aborted(g)) return;
+  await flipMorph(chip, `<span class="emo">${OCC_PICK[0]}</span>${OCC_PICK[1]}`);
+  if (aborted(g)) return;
   await closeDock(); if (aborted(g)) return;
-  await wait(500);
+  await wait(600);
 }
 
 /* ─── 6 · Gender: quick, with its why ─── */
-async function scene7_gender(g) {
-  CURRENT_SCENE = 7; updateSceneUI();
+async function scene6_gender(g) {
+  CURRENT_SCENE = 6; updateSceneUI();
   await sarahSays(g, `Last quick one about you.`, { loadingMs: 1020 });
   await wait(800); if (aborted(g)) return;
 
@@ -1736,7 +1756,7 @@ async function scene7_gender(g) {
   const pick = inputDock.querySelector('[data-opt="Male"]');
   await tapAt(pick, { lead: 240 }); if (aborted(g)) return;
   pick.classList.add('selected', 'punch');
-  await collect('🙋', pick, 8);
+  await collect('🙋', pick, 10);
   if (aborted(g)) return;
   fadeDockExcept([pick]);
   await wait(340); if (aborted(g)) return;
@@ -1745,42 +1765,9 @@ async function scene7_gender(g) {
   await wait(450);
 }
 
-/* ─── 7 · Feeling check: the fear-killer, right before the mic ─── */
-async function scene8_feeling(g) {
-  CURRENT_SCENE = 8; updateSceneUI();
-  await sarahSays(g, `Before we talk. How do you feel about speaking English?`, { loadingMs: 1230 });
-  await wait(800); if (aborted(g)) return;
-
-  const opts = [['😄', 'Excited'], ['🙂', 'Okay'], ['😅', 'A little nervous'], ['🫣', 'Very shy']];
-  openDock(`
-    <div class="dock-label">Honest answer. It helps me go at your pace</div>
-    <div class="quick-wrap">
-      ${opts.map(([e, o], i) => `<div class="quick-chip" data-opt="${o}" style="animation-delay:${i * 55}ms">${e} ${o}</div>`).join('')}
-    </div>
-  `, 'right-align');
-  await wait(750); if (aborted(g)) return;
-
-  const pick = inputDock.querySelector('[data-opt="A little nervous"]');
-  await tapAt(pick, { lead: 240 }); if (aborted(g)) return;
-  pick.classList.add('selected', 'punch');
-  await collect('😅', pick, 8);
-  if (aborted(g)) return;
-  fadeDockExcept([pick]);
-  await wait(340); if (aborted(g)) return;
-  await flipMorph(pick, `😅 A little nervous`); if (aborted(g)) return;
-  await closeDock(); if (aborted(g)) return;
-
-  // Mood-matched bridge into the mic — this line is the whole point of the question
-  await sarahSaysSplit(g, [
-    `Most people say nervous. That's completely normal 😊`,
-    `We go slow. One small answer at a time. I promise.`
-  ], { gentle: true, loadingMs: 1160 });
-  await wait(700);
-}
-
 /* ─── 9 · Impromptu: get-to-know-you done (⭐1) → Assembly Loader → question → ⭐2 ─── */
-async function scene9_impromptu(g) {
-  CURRENT_SCENE = 9; updateSceneUI();
+async function scene7_impromptu(g) {
+  CURRENT_SCENE = 7; updateSceneUI();
   await wait(400); if (aborted(g)) return;
 
   // Act 1 complete: a star flies from the chat up to the tray (⭐1)
@@ -1797,7 +1784,7 @@ async function scene9_impromptu(g) {
     [
       `Checking everything you told me…`,
       `You like movies and books 🎬 📖`,
-      `And you want to meet new people 🤝`
+      `And you work in an office 💼`
     ],
     `Here is your first question. Tell me about a story you love, from a movie or a book.`,
     `यह रहा आपका पहला सवाल। मुझे कोई ऐसी कहानी बताइए जो आपको पसंद हो, किसी फ़िल्म या किताब से।`
@@ -1855,8 +1842,7 @@ async function scene9_impromptu(g) {
 }
 
 /* ─── Master loop ─── */
-const SCENES = [null, scene1_greeting, scene2_agenda, scene3_translateCoach, scene4_interests, scene5_goalProbe,
-                scene6_day, scene7_gender, scene8_feeling, scene9_impromptu];
+const SCENES = [null, scene1_greeting, scene2_agenda, scene3_translateCoach, scene4_interests, scene5_occupation, scene6_gender, scene7_impromptu];
 
 async function runFlow() {
   const g = ++CURRENT_GEN;
@@ -1865,7 +1851,7 @@ async function runFlow() {
     await wait(240);
     if (g !== CURRENT_GEN) break;
     try {
-      for (let i = 1; i <= 9; i++) { await SCENES[i](g); if (g !== CURRENT_GEN) break; }
+      for (let i = 1; i <= 7; i++) { await SCENES[i](g); if (g !== CURRENT_GEN) break; }
     } catch (e) { console.error('Scene failed:', e); }
     if (g !== CURRENT_GEN) break;
     loopFade.classList.add('show');
@@ -1893,10 +1879,7 @@ function snapshotForScene(target) {
     requestAnimationFrame(() => { positionSarah(); showSarah(); });
     PROGRESS = 10;
   }
-  if (target >= 3) {
-    // agenda tour leaves no chat bubbles
-    PROGRESS = 14;
-  }
+  if (target >= 3) { PROGRESS = 14; }   // agenda tour leaves no chat bubbles
   if (target >= 4) {
     addBubble({ kind: 'bot', html: `If my English is hard, tap this button. It shows my words in your language.`, tools: ['translate', 'speaker'] });
     PROGRESS = 16;
@@ -1908,26 +1891,14 @@ function snapshotForScene(target) {
     PROGRESS = 31;
   }
   if (target >= 6) {
-    addBubble({ kind: 'bot', html: `Where should you feel confident first?`, tools: ['translate', 'speaker'] });
-    addChoiceBubble(`🤝 Meeting new people`);
-    addBubble({ kind: 'bot', html: `Meeting new people. Lovely. We will practice real conversations, the easy way.`, tools: ['translate', 'speaker'] });
-    PROGRESS = 39;
+    addBubble({ kind: 'bot', html: `And what do you do? It shapes our conversations.`, tools: ['translate', 'speaker'] });
+    addChoiceBubble(`<span class="emo">${OCC_PICK[0]}</span>${OCC_PICK[1]}`);
+    PROGRESS = 44;
   }
   if (target >= 7) {
-    addBubble({ kind: 'bot', html: `What does your day look like?`, tools: ['translate', 'speaker'] });
-    addChoiceBubble(`💼 I work`);
-    PROGRESS = 47;
-  }
-  if (target >= 8) {
     addBubble({ kind: 'bot', html: `Last quick one about you.`, tools: ['translate', 'speaker'] });
     addChoiceBubble(`Male`);
-    PROGRESS = 55;
-  }
-  if (target >= 9) {
-    addBubble({ kind: 'bot', html: `Before we talk. How do you feel about speaking English?`, tools: ['translate', 'speaker'] });
-    addChoiceBubble(`😅 A little nervous`);
-    addBubble({ kind: 'bot', html: `We go slow. One small answer at a time. I promise.`, tools: ['translate', 'speaker'] });
-    PROGRESS = 66;
+    PROGRESS = 56;
   }
   setProgress(PROGRESS);
   scrollChat();
@@ -1940,7 +1911,7 @@ async function jumpTo(sceneNum) {
   if (sceneNum > 1) snapshotForScene(sceneNum);
   await wait(200);
   if (g !== CURRENT_GEN) return;
-  for (let i = sceneNum; i <= 9; i++) { await SCENES[i](g); if (g !== CURRENT_GEN) return; }
+  for (let i = sceneNum; i <= 7; i++) { await SCENES[i](g); if (g !== CURRENT_GEN) return; }
   loopFade.classList.add('show');
   await wait(700);
   if (g !== CURRENT_GEN) return;
@@ -1954,6 +1925,58 @@ function updateSceneUI() {
   sceneJumps.querySelectorAll('button').forEach(b => b.classList.toggle('active', parseInt(b.dataset.scene, 10) === CURRENT_SCENE));
 }
 
+/* ─── Flag / feedback sheet (conversation-specific issues, inline note per chip) ─── */
+const FLAG_ISSUES = [
+  ['🗣️', "I didn't understand Sarah", 'Which word or question was confusing?'],
+  ['👂', 'Sarah misheard me', 'What did she hear wrong?'],
+  ['🌀', 'She made up something I never said', 'What did she invent?'],
+  ['✏️', 'Wrong correction', 'What should it have been?'],
+  ['🙈', 'She ignored what I said', 'What did you say that she skipped?'],
+  ['🔁', 'She keeps asking the same thing', 'What is she repeating?'],
+  ['📈', 'Too hard for my level', 'Which part felt too advanced?'],
+  ['🤖', 'Her reply felt generic / robotic', 'What felt off?'],
+  ['💭', 'Something else', 'Tell us what happened']
+];
+const flagSheet = document.getElementById('flagSheet');
+const flagBtn = document.getElementById('flagBtn');
+function buildFlagSheet() {
+  document.getElementById('flagItems').innerHTML = FLAG_ISSUES.map(([emo, label, ph]) => `
+    <div class="fs-item">
+      <div class="fs-chip"><span class="fs-emo">${emo}</span><span>${label}</span><span class="fs-check">✓</span></div>
+      <div class="fs-note"><textarea placeholder="${ph}"></textarea></div>
+    </div>`).join('');
+  flagSheet.querySelectorAll('.fs-chip').forEach(c => c.addEventListener('click', () => {
+    const item = c.parentElement;
+    item.classList.toggle('open');
+    if (item.classList.contains('open')) setTimeout(() => item.querySelector('textarea').focus(), 260);
+    updateFlagSubmit();
+  }));
+  updateFlagSubmit();
+}
+function updateFlagSubmit() {
+  document.getElementById('flagSubmit').disabled = !flagSheet.querySelector('.fs-item.open');
+}
+let FLAG_PREV_PAUSED = false;
+function openFlagSheet() {
+  buildFlagSheet();
+  FLAG_PREV_PAUSED = PAUSED; PAUSED = true;          // freeze the whole flow
+  coachScrim.classList.add('show', 'flag-up');       // dim + cover coach overlays
+  flagSheet.classList.remove('out');
+  requestAnimationFrame(() => flagSheet.classList.add('show'));
+}
+function closeFlagSheet() {
+  flagSheet.classList.remove('show');
+  flagSheet.classList.add('out');
+  coachScrim.classList.remove('show', 'flag-up');
+  PAUSED = FLAG_PREV_PAUSED;                          // resume where it was
+  setTimeout(() => { flagSheet.classList.remove('out'); document.getElementById('flagItems').innerHTML = ''; }, 340);
+}
+flagBtn.addEventListener('click', () => {
+  if (flagSheet.classList.contains('show')) closeFlagSheet(); else openFlagSheet();
+});
+document.getElementById('flagSubmit').addEventListener('click', (e) => { if (e.currentTarget.disabled) return; closeFlagSheet(); showToast('Thanks — feedback noted!'); });
+coachScrim.addEventListener('click', () => { if (flagSheet.classList.contains('show')) closeFlagSheet(); });
+
 /* ─── Debug controls ─── */
 document.getElementById('replay').addEventListener('click', () => { CURRENT_GEN++; loopFade.classList.remove('show'); runFlow(); });
 const pauseBtn = document.getElementById('pauseBtn');
@@ -1965,7 +1988,7 @@ sceneJumps.querySelectorAll('button').forEach(b => b.addEventListener('click', (
 window.addEventListener('load', () => {
   const qp = new URLSearchParams(location.search);
   const jump = parseInt(qp.get('scene') || '0', 10);
-  if (jump >= 1 && jump <= 9) setTimeout(() => jumpTo(jump), 400);
+  if (jump >= 1 && jump <= 7) setTimeout(() => jumpTo(jump), 400);
   else setTimeout(runFlow, 500);
 });
 window.addEventListener('resize', positionSarah);
