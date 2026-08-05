@@ -1525,11 +1525,10 @@ async function userSpeaks(g, html, onSubmitted) {
 const PICKS = ['Movies & shows', 'Books', 'Gardening'];
 const PICK_EMOJI = { 'Movies & shows': '🎬', 'Books': '📖', 'Gardening': '🌱' };
 const OCCUPATIONS = [
-  ['💼','Office & business'], ['🏪','Business owner'], ['🔍','Looking for work'], ['🎓','Student'],
-  ['🩺','Healthcare'], ['🍔','Restaurant & food'], ['🛍️','Retail & service'], ['🏗️','Construction'],
-  ['🏭','Factory & warehouse'], ['🚗','Driver & delivery'], ['🏠','At home / family'], ['✨','Something else']
+  ['🎓','Student'], ['💼','Working professional'], ['💻','Freelancer'], ['🏪','Business owner'],
+  ['🏠','Homemaker'], ['⏸️','On a career break'], ['🔍','Looking for work'], ['✨','Something else']
 ];
-const OCC_PICK = ['💼', 'Office & business'];
+const OCC_PICK = ['💼', 'Working professional'];
 
 /* Sarah thinking — a child of the loader ROW, sitting fully above the bubble
    (bottom:100%), so she tracks the bubble's size/position automatically. */
@@ -1784,7 +1783,7 @@ async function scene7_impromptu(g) {
     [
       `Checking everything you told me…`,
       `You like movies and books 🎬 📖`,
-      `And you work in an office 💼`
+      `And you're a working professional 💼`
     ],
     `Here is your first question. Tell me about a story you love, from a movie or a book.`,
     `यह रहा आपका पहला सवाल। मुझे कोई ऐसी कहानी बताइए जो आपको पसंद हो, किसी फ़िल्म या किताब से।`
