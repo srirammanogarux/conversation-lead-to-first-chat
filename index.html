@@ -1712,7 +1712,7 @@ async function scene4_interests(g) {
 /* ─── 5 · Occupation: real industry, styled like the interest cloud ─── */
 async function scene5_occupation(g) {
   CURRENT_SCENE = 5; updateSceneUI();
-  await sarahSays(g, `And what do you do? It shapes our conversations.`, { loadingMs: 1100 });
+  await sarahSays(g, `What fits you best right now?`, { loadingMs: 1100 });
   await wait(800); if (aborted(g)) return;
 
   const chipsHTML = OCCUPATIONS.map(([emo, label], i) =>
@@ -1890,7 +1890,7 @@ function snapshotForScene(target) {
     PROGRESS = 31;
   }
   if (target >= 6) {
-    addBubble({ kind: 'bot', html: `And what do you do? It shapes our conversations.`, tools: ['translate', 'speaker'] });
+    addBubble({ kind: 'bot', html: `What fits you best right now?`, tools: ['translate', 'speaker'] });
     addChoiceBubble(`<span class="emo">${OCC_PICK[0]}</span>${OCC_PICK[1]}`);
     PROGRESS = 44;
   }
